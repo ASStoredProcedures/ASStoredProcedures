@@ -5,12 +5,12 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("ASStoredProcs")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyTitle("ASSP")]
+[assembly: AssemblyDescription("Analysis Services 2005 Stored Procedures sample project http://www.codeplex.com/Wiki/View.aspx?ProjectName=ASStoredProcedures")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("James & Monroe")]
-[assembly: AssemblyProduct("ASStoredProcs")]
-[assembly: AssemblyCopyright("Copyright © James & Monroe 2006")]
+[assembly: AssemblyCompany("Analysis Services Stored Procedure project")]
+[assembly: AssemblyProduct("ASSP")]
+[assembly: AssemblyCopyright("Copyright © Analysis Services Stored Procedure project 2006")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
