@@ -1,0 +1,90 @@
+--returns the most efficient set that represents YTD October 2002
+select {} ON 0,
+ASSP.GetEfficientPeriodsToDateSet("Calendar Year",[Date].[Calendar].[Month].[October 2002])
+ON 1
+from [Adventure Works]
+
+--returns the most efficient set that represents all of time through October 2003
+select {} ON 0,
+ASSP.GetEfficientPeriodsToDateSet("(All)",[Date].[Calendar].[Month].&[2003]&[10])
+ON 1
+from [Adventure Works]
+
+
+--very flexible, but very slow because it has to figure out which is the time dimension, and which is the current hierarchy being used (Calendar vs. Fiscal are usually the choices)
+with
+member [Measures].[Test] as SetToStr(ASSP.GetEfficientToDateSet())
+select [Measures].[Test] ON 0
+from [Adventure Works]
+where ([Date].[Calendar].[Month].&[2003]&[10])
+
+--slower than GetEfficientPeriodsToDateSet("Calendar Year",[Date].[Calendar].[Month].&[2002]&[10]) because it has to figure out which level is the year level
+select {} ON 0,
+ASSP.GetEfficientYearToDateSet([Date].[Calendar].[Month].&[2003]&[10])
+ON 1
+from [Adventure Works]
+
+--slower than GetEfficientPeriodsToDateSet("Calendar Quarter",[Date].[Calendar].[Date].[November 3, 2003]) because it has to figure out which level is the quarter level
+select {} ON 0,
+ASSP.GetEfficientQuarterToDateSet([Date].[Calendar].[Date].[November 3, 2003])
+ON 1
+from [Adventure Works]
+
+--slower than GetEfficientPeriodsToDateSet("Calendar Month",[Date].[Calendar].[Date].[November 3, 2003]) because it has to figure out which level is the month level
+select {} ON 0,
+ASSP.GetEfficientMonthToDateSet([Date].[Calendar].[Date].[November 3, 2003])
+ON 1
+from [Adventure Works]
+
+--example of how it successfully handles a parameter of a member which does not exist... note in the code it is checking whether (oCurrentMember.UniqueName == "")
+select {} ON 0,
+ASSP.GetEfficientYearToDateSet([Date].[Calendar].[Month].[999999])
+ON 1
+from [Adventure Works]
+
+--notice that the function is able to figure out that the hierarchy in use on each row is different
+with
+member [Measures].[CurrentDateSelection] as ASSP.GetMostGranularHierarchyCurrentMember("Date").UniqueName
+select {[Measures].[CurrentDateSelection]} on 0,
+{
+ ([Date].[Calendar].[Date].[November 3, 2003],[Date].[Fiscal].[All])
+,([Date].[Calendar].[All],[Date].[Fiscal].[Fiscal Quarter].[Q1 FY 2003])
+} on 1
+from [Adventure Works]
+
+--another example of GetMostGranularHierarchyCurrentMember
+with
+member [Measures].[CurrentDateSelection] as ASSP.GetMostGranularHierarchyCurrentMember("Date").UniqueName
+select {[Measures].[CurrentDateSelection]} on 0
+from [Adventure Works]
+where ([Date].[Calendar].[Date].[November 3, 2003])
+
+--another example of GetMostGranularHierarchyCurrentMember
+with
+member [Measures].[CurrentDateSelection] as ASSP.GetMostGranularHierarchyCurrentMember("Date").UniqueName
+select {[Measures].[CurrentDateSelection]} on 0
+from [Adventure Works]
+where ([Date].[Fiscal].[Fiscal Quarter].[Q1 FY 2003])
+
+--run the following query and notice how long it takes to complete
+with
+set ToDateSet as Ytd([Date].[Calendar].[Date].[November 3, 2003])
+member [Measures].[Test] as Sum({ToDateSet},[Measures].[Internet Sales Amount])
+SELECT {[Measures].[Test]} ON 0,
+NON EMPTY {
+ [Product].[Product].[Product].Members
+ *[Customer].[Country].[Country].Members
+} ON 1
+FROM [Adventure Works]
+
+--then compare against the efficient version
+--also notice the use of the named set so that the efficient set is not recalculated hundreds or thousands of times (once for every row)
+with
+set ToDateSet as ASSP.GetEfficientPeriodsToDateSet("Calendar Year",[Date].[Calendar].[Date].[November 3, 2003])
+member [Measures].[Test] as Sum({ToDateSet},[Measures].[Internet Sales Amount])
+SELECT {[Measures].[Test]} ON 0,
+NON EMPTY {
+ [Product].[Product].[Product].Members
+ *[Customer].[Country].[Country].Members
+} ON 1
+FROM [Adventure Works]

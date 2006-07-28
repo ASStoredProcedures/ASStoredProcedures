@@ -1,0 +1,4 @@
+--assembly must be registered with unrestricted permissions
+with member [Measures].[LastProcessed] as ASSP.GetCubeLastProcessedDate()
+select [Measures].[LastProcessed] on 0
+from [Adventure Works]
