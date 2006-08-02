@@ -1,0 +1,7 @@
+--Returns the same information as the FindCurrentMember function plus the currentmember's caption 
+--and the names of the dimension and hierarchy of the currentmember
+WITH MEMBER MEASURES.TEST AS ASSP.FindCurrentMemberVerbose()
+SELECT MEASURES.TEST ON 0,
+[Date].[Day of Week].MEMBERS
+ON 1
+from [Adventure Works]

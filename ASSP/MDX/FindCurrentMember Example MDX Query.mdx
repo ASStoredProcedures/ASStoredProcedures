@@ -1,0 +1,7 @@
+--Returns the uniquename of the currentmember on every attribute hierarchy of every dimension
+--in a comma-delimited list
+WITH MEMBER MEASURES.TEST AS ASSP.FindCurrentMember()
+SELECT MEASURES.TEST ON 0,
+[Date].[Day of Week].MEMBERS
+ON 1
+from [Adventure Works]

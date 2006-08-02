@@ -1,0 +1,10 @@
+--An example of how to use the TimeToCalculate function within a calculated member
+--Also included in this query is a calculated member on [Date].[Day of Week] which does a lot 
+--of work, and so returns a much higher value when TimeToCalculate is called
+WITH MEMBER MEASURES.GETTIME AS ASSP.TimeToCalculate(Measures.[Internet Sales Amount])
+MEMBER MEASURES.TIMEPERCENT AS MEASURES.GETTIME/SUM(AXIS(1), MEASURES.GETTIME), FORMAT_STRING='PERCENT'
+MEMBER [Date].[Day of Week].VERYBIGCALC AS SUM([Date].[Date].[Date].MEMBERS * [Product].[Category].MEMBERS,Measures.[Internet Sales Amount] )
+SELECT {MEASURES.GETTIME, MEASURES.TIMEPERCENT} ON 0,
+[Date].[Day of Week].ALLMEMBERS
+ON 1
+from [Adventure Works]
