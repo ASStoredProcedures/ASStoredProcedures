@@ -54,10 +54,12 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="MDX\AsymmetricSet Example MDX Queries.mdx" />
     <None Include="MDX\CubeInfo Example MDX Queries.mdx" />
     <None Include="MDX\EfficientToDate Example MDX Queries.mdx" />
     <None Include="MDX\FindCurrentMember Example MDX Query.mdx" />
     <None Include="MDX\FindCurrentMemberVerbose Example MDX Query.mdx" />
+    <None Include="MDX\StringFilter Example MDX Queries.mdx" />
     <None Include="MDX\TimeToCalculate Example MDX Query.mdx" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

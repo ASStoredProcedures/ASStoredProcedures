@@ -1,0 +1,95 @@
+
+// Asymmetric Set of Married or Clerical occupation
+// (returned on the row axis to demonstrate how the set is composed)
+SELECT 
+  {
+  [Measures].[Internet Order Count]
+  ,[Measures].[Sales Amount]
+  } ON COLUMNS
+	,ASSP.AsymmetricSet([Customer].[Marital Status].[Married]
+						,[Customer].[Occupation].[Clerical]
+						,[Customer].[Education].&[High School]) ON ROWS
+FROM [Adventure Works];
+
+// Asymmetric filter of results for people that are either
+//     "Married"
+//  OR "Clerical" occupation    
+//  OR "High School" education
+SELECT 
+  {
+  [Measures].[Internet Order Count]
+  ,[Measures].[Sales Amount]
+  } ON COLUMNS
+FROM [Adventure Works]
+WHERE ASSP.AsymmetricSet([Customer].[Marital Status].[Married]
+								,[Customer].[Occupation].[Clerical]
+								,[Customer].[Education].&[High School]) ;
+								
+					
+// This code demonstrates that if you pass in a member that does not exist,
+// the function silently ignores it. There is a check for non-existant members
+// in the code
+SELECT 
+  {
+  [Measures].[Internet Order Count]
+  ,[Measures].[Sales Amount]
+  } ON COLUMNS
+  ,ASSP.AsymmetricSet([Customer].[Marital Status].[Married]
+								,[Customer].[Occupation].[Clerical]
+								,[Customer].[Occupation].&[Manual ERROR]) ON ROWS
+FROM [Adventure Works];
+
+
+// the following query generates a set across 7 different dimensions								
+SELECT 
+  {
+  [Measures].[Internet Order Count]
+  ,[Measures].[Sales Amount]
+  } ON COLUMNS
+  ,ASSP.AsymmetricSet([Customer].[Occupation].[Clerical]	
+					,[Employee].[Gender].&[F]
+					,[Product].[Color].&[Blue]
+					,[Sales Channel].[Sales Channel].&[Internet]
+					,[Scenario].[Scenario].&[1]
+					,[Sales Reason].[Sales Reason Type].&[Marketing]
+					,[Promotion].[Promotion Type].&[New Product]
+	) ON ROWS
+FROM [Adventure Works];
+								
+
+
+// The same set from the above query will produce an error of 
+// "Arbitrary Shape is not allowed when elements cross a reference dimension"
+// on the [Internet Order Count] measure. This is because the measure group
+// that holds the [Internet Order Count] is related to the [Sales Reason]
+// dimension through a many-to-many relationship.
+								
+SELECT 
+  {
+  [Measures].[Internet Order Count]
+  ,[Measures].[Sales Amount]
+  } ON COLUMNS
+FROM [Adventure Works]
+WHERE  ASSP.AsymmetricSet([Customer].[Occupation].[Clerical]	
+					,[Employee].[Gender].&[F]
+					,[Product].[Color].&[Blue]
+					,[Sales Channel].[Sales Channel].&[Internet]
+					,[Scenario].[Scenario].&[1]
+					,[Sales Reason].[Sales Reason Type].&[Marketing]
+					,[Promotion].[Promotion Type].&[New Product]);
+
+
+
+
+// The following query demonstrates how you can even combine multiple
+// members from the same hierarchy (Occupation)
+SELECT 
+  {
+  [Measures].[Internet Order Count]
+  ,[Measures].[Sales Amount]
+  } ON COLUMNS
+  
+FROM [Adventure Works]
+WHERE ASSP.AsymmetricSet([Customer].[Marital Status].[Married]
+						,[Customer].[Occupation].[Clerical]
+						,[Customer].[Occupation].&[Manual]); 
