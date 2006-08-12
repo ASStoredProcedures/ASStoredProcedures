@@ -38,7 +38,7 @@ SELECT
 	, HEAD(
 		FILTER(
 			[Customer].[Customer].Members
-			, ASStoredProcs.IsLike([Customer].[Customer].CurrentMember.Name
+			, ASSP.IsLike([Customer].[Customer].CurrentMember.Name
 								,"C%")
 		)
 	,100) ON ROWS
