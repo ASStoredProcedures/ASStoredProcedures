@@ -1,0 +1,44 @@
+// An example of MDX query to reverse the set.
+// This query returns the years in the reverse order - from 2004 to 2001
+//
+// The results should be the same as with following query
+//select 
+//{} on 0,
+//Generate([Date].[Calendar].[Calendar Year].members AS A, {A.Item(A.Count-A.CurrentOrdinal)}) on 1
+//from [Adventure Works]
+select 
+{} on 0,
+ASSP.ReverseSet([Date].[Calendar].[Calendar Year].members) on 1
+from [Adventure Works]
+
+go
+
+// An example of MDX query to return random sampling from the set.
+// This query returns 10 random products
+select 
+{} on 0,
+ASSP.RandomSample([Product].[Product].[Product].members, 10) on 1
+from [Adventure Works]
+
+go
+
+// An example of MDX query to inverse hierarchility of all the tuples in the set
+// This query switches product category and calendar years hierarchies in every tuple.
+// Not, that the result is not the same as [Date].[Calendar].[Calendar Year].members*[Product].[Category].[Category].members
+select
+{} on 0,
+ASSP.InverseHierarchility([Product].[Category].[Category].members*[Date].[Calendar].[Calendar Year].members) on 1
+from [Adventure Works]
+
+go
+
+// An example of MDX query to do assymentric drill down, i.e. when we want to drill down
+// only one member of one tuple. If the same member appears in other tuples - they shouldn't be drilled down.
+// In this query, we drill down Accessories member but only in the third tuple (indexes are zero based).
+select
+{} on 0,
+ASSP.AsymmetricDrillDown(
+Head([Date].[Calendar].[Calendar Year].members*[Product].[Product Categories].[Category].members*[Sales Territory].[Sales Territory].[Group].members,10)
+,2,1)
+on 1
+from [Adventure Works]

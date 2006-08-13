@@ -1,7 +1,7 @@
 
-// ## Like Function ##
-// ===================
-// Find all customers with a member name like C% (ie. starts with "C")
+-- ## Like Function ##
+-- ===================
+-- Find all customers with a member name like C% (ie. starts with "C")
 SELECT
   {[Measures].[Sales Amount]} ON COLUMNS
 , {ASSP.Like([Customer].[Customer].Members
@@ -9,7 +9,7 @@ SELECT
 			,[Customer].[Customer].CurrentMember.Name)} ON ROWS
 FROM [Adventure Works];
 
-// Find all customers with a middle initial of A. in their name.
+-- Find all customers with a middle initial of A. in their name.
 SELECT
   {[Measures].[Sales Amount]} ON COLUMNS
 , {ASSP.Like([Customer].[Customer].Members
@@ -17,7 +17,7 @@ SELECT
 			,[Customer].[Customer].CurrentMember.Name)} ON ROWS
 FROM [Adventure Works];
 
-// Find all customers with an initial followed by a full stop in their name
+-- Find all customers with an initial followed by a full stop in their name
 SELECT
   {[Measures].[Sales Amount]} ON COLUMNS
 , {ASSP.Like([Customer].[Customer].Members
@@ -25,14 +25,14 @@ SELECT
 			,[Customer].[Customer].CurrentMember.Name)} ON ROWS
 FROM [Adventure Works];
 
-// ## IsLike Function ##
-// =====================
+-- ## IsLike Function ##
+-- =====================
 
-// Find top 100 customers with a name LIKE C% 
-// The Head() clause is optimised to stop executing the filter statements once
-// it has enough members. So using the IsLike() stored proc should be more efficient,
-// as it will only be executed 100 times. If we did a Head() over the Like() stored
-// proc, the stored proc would have to execute over the entire set of members.
+-- Find top 100 customers with a name LIKE C% 
+-- The Head() clause is optimised to stop executing the filter statements once
+-- it has enough members. So using the IsLike() stored proc should be more efficient,
+-- as it will only be executed 100 times. If we did a Head() over the Like() stored
+-- proc, the stored proc would have to execute over the entire set of members.
 SELECT
   {[Measures].[Sales Amount]} ON COLUMNS
 	, HEAD(
@@ -45,10 +45,10 @@ SELECT
 FROM [Adventure Works];
 
 
-// ## RegExFilter Function ##
-// ==========================
+-- ## RegExFilter Function ##
+-- ==========================
 
-// RegEx to find members containing "North" or "South"
+-- RegEx to find members containing "North" or "South"
 SELECT
   {[Measures].[Sales Amount]} ON COLUMNS
 , {ASSP.RegExFilter([Customer].[Customer Geography].[City].Members
@@ -57,8 +57,8 @@ SELECT
 					,false)} ON ROWS
 FROM [Adventure Works];
 
-// RegEx to find members containing "north" or "South" (Case sensitive)
-// - will not match any of the "North..." members.
+-- RegEx to find members containing "north" or "South" (Case sensitive)
+-- - will not match any of the "North..." members.
 SELECT
   {[Measures].[Sales Amount]} ON COLUMNS
 , {ASSP.RegExFilter([Customer].[Customer Geography].[City].Members
