@@ -1,0 +1,112 @@
+--if you were wanting LinkMember to return [Ship Date].[Calendar].[January 2004] you will be disappointed
+--instead it returns [Ship Date].[Calendar].[H1 CY 2004]
+--because the keys for January 2004 (&[2004]&[1]) match the keys for H1 CY 2004 (&[2004]&[1])
+--and it got to H1 CY 2004 first
+select {} on 0,
+LinkMember([Date].[Calendar].[January 2004],[Ship Date].[Calendar]) on 1
+from [Adventure Works]
+
+GO
+
+--this problem could be solved using pure MDX (no stored procs) by using the attribute hierarchy
+select {} on 0,
+LinkMember([Date].[Calendar].[January 2004],[Ship Date].[Month Name]) on 1
+from [Adventure Works]
+
+GO
+
+--but this solution will only work for months, not for any other level
+--using a case statement to account for different levels quickly becomes fairly lengthly MDX
+--but this is necessary if the calculated member you are writing must deal with any calendar slice the end user chooses
+select {} on 0,
+case
+ when [Date].[Calendar].CurrentMember.Level is [Date].[Calendar].[Calendar Year]
+  then LinkMember([Date].[Calendar].CurrentMember,[Ship Date].[Calendar Year])
+ when [Date].[Calendar].CurrentMember.Level is [Date].[Calendar].[Calendar Semester]
+  then LinkMember([Date].[Calendar].CurrentMember,[Ship Date].[Calendar Semester])
+ when [Date].[Calendar].CurrentMember.Level is [Date].[Calendar].[Calendar Quarter]
+  then LinkMember([Date].[Calendar].CurrentMember,[Ship Date].[Calendar Quarter])
+ when [Date].[Calendar].CurrentMember.Level is [Date].[Calendar].[Month]
+  then LinkMember([Date].[Calendar].CurrentMember,[Ship Date].[Month Name])
+ when [Date].[Calendar].CurrentMember.Level is [Date].[Calendar].[Date]
+  then LinkMember([Date].[Calendar].CurrentMember,[Ship Date].[Date])
+end
+on 1
+from [Adventure Works]
+where ([Date].[Calendar].[January 2004])
+
+GO
+
+--using the HierarchyLinkMember sproc, you can get what you were intending
+--passing in the hierarchy as a string instead of as a Hierarchy object avoids the 50x performance hit intrinsic in passing using a Hierarchy object in a sproc
+select {} on 0,
+ASSP.HierarchyLinkMember([Date].[Calendar].[January 2004],"[Ship Date].[Calendar]") on 1
+from [Adventure Works]
+
+GO
+
+--the LevelLinkMember sproc lets you specify the level that should be used
+--passing in the level as a string instead of as a Level object avoids the 50x performance hit intrinsic in passing using a Level object in a sproc
+select {} on 0,
+ASSP.LevelLinkMember([Date].[Calendar].[January 2004],"[Ship Date].[Calendar].[Month]") on 1
+from [Adventure Works]
+
+GO
+
+--to make it dynamic, do something like the following
+--the string that should be passed in should be the UniqueName
+select {} on 0,
+ASSP.LevelLinkMember([Date].[Calendar].CurrentMember,[Ship Date].[Calendar].Levels([Date].[Calendar].CurrentMember.Level.Name).UniqueName) on 1
+from [Adventure Works]
+where ([Date].[Calendar].[January 2004])
+
+GO
+
+--PERFORMANCE TESTS--
+
+--pure MDX LinkMember completes in about 5 seconds (though it returns the "wrong" answer)
+with member [Measures].[TestLinkMember] as LinkMember([Date].[Calendar].CurrentMember,[Ship Date].[Calendar]).Name
+select [Measures].[TestLinkMember] on 0,
+[Customer].[Customer].[Customer].Members on 1
+from [Adventure Works]
+where ([Date].[Calendar].[January 2004])
+
+GO
+
+--pure MDX with case logic completes in about 5 seconds and returns the correct answer
+with member [Measures].[TestLinkMember] as 
+case
+ when [Date].[Calendar].CurrentMember.Level is [Date].[Calendar].[Calendar Year]
+  then LinkMember([Date].[Calendar].CurrentMember,[Ship Date].[Calendar Year])
+ when [Date].[Calendar].CurrentMember.Level is [Date].[Calendar].[Calendar Semester]
+  then LinkMember([Date].[Calendar].CurrentMember,[Ship Date].[Calendar Semester])
+ when [Date].[Calendar].CurrentMember.Level is [Date].[Calendar].[Calendar Quarter]
+  then LinkMember([Date].[Calendar].CurrentMember,[Ship Date].[Calendar Quarter])
+ when [Date].[Calendar].CurrentMember.Level is [Date].[Calendar].[Month]
+  then LinkMember([Date].[Calendar].CurrentMember,[Ship Date].[Month Name])
+ when [Date].[Calendar].CurrentMember.Level is [Date].[Calendar].[Date]
+  then LinkMember([Date].[Calendar].CurrentMember,[Ship Date].[Date])
+end.Name
+select [Measures].[TestLinkMember] on 0,
+[Customer].[Customer].[Customer].Members on 1
+from [Adventure Works]
+where ([Date].[Calendar].[January 2004])
+
+GO
+
+--HierarchyLinkMember completes in about 10 seconds
+with member [Measures].[TestLinkMember] as ASSP.HierarchyLinkMember([Date].[Calendar].CurrentMember,"[Ship Date].[Calendar]").Name
+select [Measures].[TestLinkMember] on 0,
+[Customer].[Customer].[Customer].Members on 1
+from [Adventure Works]
+where ([Date].[Calendar].[January 2004])
+
+GO
+
+--LevelLinkMember completes in about 10 seconds
+with member [Measures].[TestLinkMember] as ASSP.LevelLinkMember([Date].[Calendar].CurrentMember,"[Ship Date].[Calendar].[Month]").Name
+select [Measures].[TestLinkMember] on 0,
+[Customer].[Customer].[Customer].Members on 1
+from [Adventure Works]
+where ([Date].[Calendar].[January 2004])
+
