@@ -54,6 +54,7 @@
     <Compile Include="Excel.cs" />
     <Compile Include="FindCurrentMember.cs" />
     <Compile Include="LinkMember.cs" />
+    <Compile Include="ListFunctions.cs" />
     <Compile Include="Multiply.cs" />
     <Compile Include="SetOperations.cs" />
     <Compile Include="StringFilters.cs" />
@@ -67,6 +68,7 @@
     <None Include="MDX\FindCurrentMember Example MDX Query.mdx" />
     <None Include="MDX\FindCurrentMemberVerbose Example MDX Query.mdx" />
     <None Include="MDX\LinkMember Examples MDX Queries.mdx" />
+    <None Include="MDX\ListFunctions Example MDX Queries.mdx" />
     <None Include="MDX\Multiply Example MDX Query.mdx" />
     <None Include="MDX\SetOperations Example.mdx" />
     <None Include="MDX\StringFilter Example MDX Queries.mdx" />
