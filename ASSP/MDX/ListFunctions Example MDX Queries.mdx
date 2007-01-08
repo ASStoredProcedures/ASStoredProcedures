@@ -1,0 +1,11 @@
+// Currently ListFunctions() is only capable of listing the functions from
+// .Net based assemblies.
+
+// returns the functions for any assemblies registered at the server level
+CALL ASSP.ListFunctions();
+
+// returns the functions for any assemblies registered for the given database
+CALL ASSP.ListFunctions("Adventure Works DW");
+
+// Throws an error if the specified database cannot be found
+CALL ASSP.ListFunctions("Error");
