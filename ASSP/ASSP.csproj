@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="AsymmetricSet.cs" />
     <Compile Include="CellTimings.cs" />
+    <Compile Include="ClusterNaming.cs" />
     <Compile Include="CubeInfo.cs" />
     <Compile Include="EfficientToDate.cs" />
     <Compile Include="Excel.cs" />
@@ -67,6 +68,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="MDX\AsymmetricSet Example MDX Queries.mdx" />
+    <None Include="MDX\ClusterNaming Examples.dmx" />
     <None Include="MDX\CubeInfo Example MDX Queries.mdx" />
     <None Include="MDX\EfficientToDate Example MDX Queries.mdx" />
     <None Include="MDX\FindCurrentMember Example MDX Query.mdx" />
