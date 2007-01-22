@@ -1,0 +1,47 @@
+--Run these queries against Adventure Works
+--The ASSP assembly must be registered with unrestricted permissions
+
+--Return a list of the clusters in this mining model
+--Columns:
+--1. ID - The unique name for the cluster (e.g. 001, 002)
+--2. DistinguishingCharacteristics - The best way to describe
+--    what distinguishes this particular cluster vs. the whole population. 
+--    Only attributes which describe at least half the population of this 
+--    cluster are included in this string. The first characteristic is the 
+--    most distinguishing characteristic.
+--3. FullDescription - The Microsoft generated description representing 
+--    every attribute without regard to whether that attribute distinguishes
+--    this cluster vs. the whole population.
+CALL ASSP.DistinguishingCharacteristicsForClusters("Customer Clusters")
+
+GO
+
+
+--updates the names of all the clusters in this mining model using the results from the DistinguishingCharacteristicsForClusters sproc
+CALL ASSP.AutoNameClusters("Customer Clusters")
+
+GO
+
+
+--after the clusters have been renamed, you can see the friendly cluster 
+--name (instead of "Cluster 1" or "Cluster 2" like it is after processing the model)
+--using the following prediction query
+select PredictNodeId(Cluster()) as ClusterId, $Cluster as ClusterName, *
+from [Customer Clusters]
+NATURAL PREDICTION JOIN
+(select * from [Customer Clusters].Cases) as x
+
+
+GO
+
+--if you have named the values of your attributes such that they can be understood without showing the attribute name, you can hide the attribute names as follows
+--(Adventure Works has attributes such as "Home Owner=Yes/No", so omitting the "Home Owner" attribute name will make "Yes" unintelligible)
+CALL ASSP.DistinguishingCharacteristicsForClusters("Customer Clusters", false)
+
+GO
+
+/*
+--you can also update the names of clusters without having that string mention the attribute names:
+--Note: running this code against Adventure Works will cause cluster names to be unintelligible because of how attribute values are named
+CALL ASSP.AutoNameClusters("Customer Clusters", false)
+*/
