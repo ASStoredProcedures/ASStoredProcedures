@@ -26,96 +26,121 @@ namespace ASStoredProcs
 {
     public class Parallel
     {
-     
-        static List<string> queries;
-        static List<string> resultSets;
-        static string connectionString;
 
         public static Microsoft.AnalysisServices.AdomdServer.Set ParallelGenerate(Microsoft.AnalysisServices.AdomdServer.Set IterationSet, string SetExpression)
         {
-            //generate all the MDX queries we'll be running
-            queries = new List<string>();
-            List<Thread> queryThreads = new List<Thread>();
-            resultSets = new List<string>();
-            Thread queryThread;
-            string tupleText;
+            List<ParallelQueryThreadInfo> threadInfos = new List<ParallelQueryThreadInfo>();
+            string connectionString = "Data Source=" + Context.CurrentServerID + ";Provider=msolap.3;initial catalog=" + Context.CurrentDatabaseName + ";";
 
             foreach (Microsoft.AnalysisServices.AdomdServer.Tuple t in IterationSet)
             {
                 //build the text of current tuple
-                tupleText = "(";
-                for(int n=1; n<=t.Members.Count; n++)
+                string tupleText = "(";
+                for (int n = 1; n <= t.Members.Count; n++)
                 {
-                    tupleText += t.Members[n-1].UniqueName;
-                    if(n<t.Members.Count)
+                    tupleText += t.Members[n - 1].UniqueName;
+                    if (n < t.Members.Count)
                         tupleText += ",";
                 }
                 tupleText += ")";
-                queries.Add("with member measures.internalcalc as settostr(" + SetExpression + ") select measures.internalcalc on 0 from [" + Context.CurrentCube.Name + "] where(" + tupleText + ")")   ; 
-            }
-            
 
-            //work out what our connection string is
-            connectionString = "Data Source=" + Context.CurrentServerID + ";Provider=msolap.3;initial catalog=" + Context.CurrentDatabaseName + ";";
-            
-            //fire off the threads to run the queries
-            for (int n = 0; n < queries.Count; n++ )
+                //build the object that will be passed to the worker thread
+                ParallelQueryThreadInfo info = new ParallelQueryThreadInfo();
+                info.connectionString = connectionString;
+                info.query = "with member measures.internalcalc as SetToStr(" + SetExpression + ") select measures.internalcalc on 0 from [" + Context.CurrentCube.Name + "] where(" + tupleText + ")";
+                info.autoEvent = new AutoResetEvent(false);
+                threadInfos.Add(info);
+                ThreadPool.QueueUserWorkItem(new WaitCallback(RunAQuery), info);
+            }
+
+            StringBuilder sFinalSet = new StringBuilder("{");
+            for (int i = 0; i < threadInfos.Count; i++)
             {
-                queryThread = new Thread(new ParameterizedThreadStart(RunAQuery));
-                queryThread.Start(n);
-                queryThreads.Add(queryThread);
+                //wait until they've finished
+                threadInfos[i].autoEvent.WaitOne();
+                if (threadInfos[i].ex != null) throw threadInfos[i].ex;
+                if (i > 0) sFinalSet.Append(" + ");
+                sFinalSet.Append(threadInfos[i].returnValue);
             }
-
-            //wait until they've finished
-            foreach (Thread t in queryThreads)
-                t.Join();
+            sFinalSet.Append("}");
 
             //union the sets they return
-            return MDX.StrToSet("{" + String.Join(" + ", resultSets.ToArray()) + "}");
+            return MDX.StrToSet(sFinalSet.ToString());
         }
 
         public static Microsoft.AnalysisServices.AdomdServer.Set ParallelUnion(string SetExpression1, string SetExpression2)
         {
-            queries = new List<string>();
-            resultSets = new List<string>();
-            List<Thread> queryThreads = new List<Thread>();
-            Thread queryThread;
-
-            queries.Add("with member measures.internalcalc as settostr(" + SetExpression1 + ") select measures.internalcalc on 0 from [" + Context.CurrentCube.Name + "]");
-            queries.Add("with member measures.internalcalc as settostr(" + SetExpression2 + ") select measures.internalcalc on 0 from [" + Context.CurrentCube.Name + "]");
-            
-            connectionString = "Data Source=" + Context.CurrentServerID + ";Provider=msolap.3;initial catalog=" + Context.CurrentDatabaseName + ";";
+            List<ParallelQueryThreadInfo> threadInfos = new List<ParallelQueryThreadInfo>();
+            string connectionString = "Data Source=" + Context.CurrentServerID + ";Provider=msolap.3;initial catalog=" + Context.CurrentDatabaseName + ";";
 
             for (int n = 0; n < 2; n++)
             {
-                queryThread = new Thread(new ParameterizedThreadStart(RunAQuery));
-                queryThread.Start(n);
-                queryThreads.Add(queryThread);
+                //build the object that will be passed to the worker thread
+                ParallelQueryThreadInfo info = new ParallelQueryThreadInfo();
+                info.connectionString = connectionString;
+                if (n == 0)
+                    info.query = "with member measures.internalcalc as SetToStr(" + SetExpression1 + ") select measures.internalcalc on 0 from [" + Context.CurrentCube.Name + "]";
+                else
+                    info.query = "with member measures.internalcalc as SetToStr(" + SetExpression2 + ") select measures.internalcalc on 0 from [" + Context.CurrentCube.Name + "]";
+                info.autoEvent = new AutoResetEvent(false);
+                threadInfos.Add(info);
+                ThreadPool.QueueUserWorkItem(new WaitCallback(RunAQuery), info);
             }
 
-            //wait until they've finished
-            foreach (Thread t in queryThreads)
-                t.Join();
+            StringBuilder sFinalSet = new StringBuilder("{");
+            for (int i = 0; i < threadInfos.Count; i++)
+            {
+                //wait until they've finished
+                threadInfos[i].autoEvent.WaitOne();
+                if (threadInfos[i].ex != null) throw threadInfos[i].ex;
+                if (i > 0) sFinalSet.Append(" + ");
+                sFinalSet.Append(threadInfos[i].returnValue);
+            }
+            sFinalSet.Append("}");
 
-            //union the sets they return
-            return MDX.StrToSet("{" + String.Join(" + ", resultSets.ToArray()) + "}");
-
+            return MDX.StrToSet(sFinalSet.ToString());
         }
-        private static void RunAQuery(object objectIndex)
+
+        private static void RunAQuery(object o)
         {
-            int index = (int)objectIndex;
-            CellSet queryCellset;
-            Microsoft.AnalysisServices.AdomdClient.AdomdCommand queryCommand = new Microsoft.AnalysisServices.AdomdClient.AdomdCommand();
-            queryCommand.CommandText = queries[index];
-            AdomdConnection conn = new AdomdConnection(connectionString );
-            conn.Open();
-            queryCommand.Connection = conn;
-            queryCellset  = queryCommand.ExecuteCellSet();
-            resultSets.Add(queryCellset[0].Value.ToString());
-            conn.Close();
+            ParallelQueryThreadInfo info = null;
+            try
+            {
+                info = (ParallelQueryThreadInfo)o;
+                AdomdConnection conn = new AdomdConnection(info.connectionString);
+                conn.Open();
+                try
+                {
+                    CellSet queryCellset;
+                    Microsoft.AnalysisServices.AdomdClient.AdomdCommand queryCommand = new Microsoft.AnalysisServices.AdomdClient.AdomdCommand();
+                    queryCommand.CommandText = info.query;
+                    queryCommand.Connection = conn;
+                    queryCellset = queryCommand.ExecuteCellSet();
+                    info.returnValue = queryCellset[0].Value.ToString();
+                }
+                finally
+                {
+                    conn.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                info.ex = ex;
+            }
+            finally
+            {
+                info.autoEvent.Set();
+            }
         }
 
-
+        private class ParallelQueryThreadInfo
+        {
+            public string query;
+            public string connectionString;
+            public string returnValue;
+            public AutoResetEvent autoEvent;
+            public Exception ex;
+        }
 
     }
 }
