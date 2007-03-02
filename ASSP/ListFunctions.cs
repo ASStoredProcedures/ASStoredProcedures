@@ -26,6 +26,7 @@ namespace ASStoredProcs
 {
     public class FunctionLister
     {
+        [SafeToPrepare(true)]
         public DataTable ListFunctions()
         {
             Microsoft.AnalysisServices.Server svr = new Microsoft.AnalysisServices.Server();
