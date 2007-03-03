@@ -1,0 +1,22 @@
+--NOTE: BACKUP YOUR CUBE FIRST!!!
+--NOTE: AFTER YOU RUN THESE FUNCTIONS, YOU WILL NEED TO RIGHT CLICK ON THE MEASURE GROUP IN MANAGEMENT STUDIO AND DO A FULL PROCESS ON THE MEASURE GROUP
+--NOTE: RUN THESE EXAMPLES FROM THE Adventure Works DW database
+
+--partition by year
+call ASSP.CreatePartitions("Adventure Works", "Internet Sales", "[Date].[Calendar Year].[Calendar Year].Members")
+
+--uneven partitioning
+call ASSP.CreatePartitions("Adventure Works", "Internet Sales", "{null:[Date].[Calendar].[CY 2003]} + {[Date].[Calendar].[January 2004]:null}")
+
+--you can go back to 1 partition:
+call ASSP.CreatePartitions("Adventure Works", "Internet Sales", "[Date].[Calendar Year].[All Periods]")
+
+--partition by the first letter in the product name:
+call ASSP.CreatePartitions("Adventure Works", "Internet Sales", "[Product].[Product].[Product].Members", "Left([Product].[Product].CurrentMember.Name,1)")
+
+--partition by ad-hoc groupings of years
+call ASSP.CreatePartitions("Adventure Works", "Internet Sales", "[Date].[Calendar Year].[Calendar Year].Members","IIf([Date].[Calendar Year].CurrentMember.Name >= 'CY 2003','newYears','oldYears')")
+
+--partition by product category and quarter
+call ASSP.CreatePartitions("Adventure Works", "Internet Sales", "[Product].[Category].[Category].Members*[Date].[Calendar].[Calendar Quarter].Members")
+
