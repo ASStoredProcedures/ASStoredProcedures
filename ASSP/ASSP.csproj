@@ -61,6 +61,7 @@
     <Compile Include="ListFunctions.cs" />
     <Compile Include="Multiply.cs" />
     <Compile Include="Parallel.cs" />
+    <Compile Include="Partition.cs" />
     <Compile Include="SetOperations.cs" />
     <Compile Include="StringFilters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -76,6 +77,7 @@
     <None Include="MDX\LinkMember Examples MDX Queries.mdx" />
     <None Include="MDX\ListFunctions Example MDX Queries.mdx" />
     <None Include="MDX\Multiply Example MDX Query.mdx" />
+    <None Include="MDX\Partition Example Queries.mdx" />
     <None Include="MDX\SetOperations Example.mdx" />
     <None Include="MDX\StringFilter Example MDX Queries.mdx" />
     <None Include="MDX\TimeToCalculate Example MDX Query.mdx" />
