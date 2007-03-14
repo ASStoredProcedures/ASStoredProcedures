@@ -56,11 +56,21 @@ namespace ASStoredProcs
                 Partition template = mg.Partitions[0];
 
                 AdomdServer.Context.TraceEvent(0, 0, "Resolving Set"); //will show up under the User Defined trace event which is selected by default
+                AdomdClient.CellSet cs;
                 AdomdClient.AdomdCommand cmd = new AdomdClient.AdomdCommand();
+                cmd.Connection = conn;
                 if (String.IsNullOrEmpty(PartitionGrouperExpressionString))
                 {
                     cmd.CommandText = "select {} on 0, {" + SetString + "} on 1 "
                      + "from [" + CubeName + "]";
+                    try
+                    {
+                        cs = cmd.ExecuteCellSet();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("The set specified was not valid: " + ex.Message);
+                    }
                 }
                 else
                 {
@@ -68,9 +78,15 @@ namespace ASStoredProcs
                      + "select [Measures].[_ASSP_PartitionGrouper_] on 0, "
                      + "{" + SetString + "} on 1 "
                      + "from [" + CubeName + "]";
+                    try
+                    {
+                        cs = cmd.ExecuteCellSet();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("The set or partition grouper specified was not valid: " + ex.Message);
+                    }
                 }
-                cmd.Connection = conn;
-                AdomdClient.CellSet cs = cmd.ExecuteCellSet();
                 s = cs.Axes[1].Set;
 
                 AdomdServer.Context.TraceEvent(0, 0, "Determining Partition Scheme");
@@ -191,7 +207,14 @@ namespace ASStoredProcs
             string sUniqueName = "";
             foreach (AdomdClient.Member m in t.Members)
             {
-                sUniqueName += (sUniqueName.Length == 0 ? "" : ", ") + m.UniqueName;
+                if (m.UniqueName.ToUpper().EndsWith(".UNKNOWNMEMBER"))
+                {
+                    sUniqueName += (sUniqueName.Length == 0 ? "" : ", ") + m.UniqueName.Substring(0, m.UniqueName.Length - "UNKNOWNMEMBER".Length) + "[" + m.Caption + "]";
+                }
+                else
+                {
+                    sUniqueName += (sUniqueName.Length == 0 ? "" : ", ") + m.UniqueName;
+                }
             }
             return "(" + sUniqueName + ")";
         }
@@ -231,11 +254,13 @@ namespace ASStoredProcs
                     foreach (AdomdClient.Tuple t in tuples)
                     {
                         string sWhereForTuple = "";
+                        bool bHasNonAllMember = false;
                         foreach (AdomdClient.Member m in t.Members)
                         {
                             string sWhereForMember = "";
-                            bool bHasNonAllMember = false;
-                            if (m.ParentLevel.Properties["LEVEL_ATTRIBUTE_HIERARCHY_NAME"].Value != null)
+
+                            //check if this member is the all member
+                            if (m.UniqueName != m.ParentLevel.ParentHierarchy.Properties["ALL_MEMBER"].Value.ToString())
                             {
                                 m.FetchAllProperties();
                                 AdomdClient.Dimension clientDimension = m.ParentLevel.ParentHierarchy.ParentDimension;
@@ -276,16 +301,18 @@ namespace ASStoredProcs
                                     {
                                         sWhereForMember += " = '" + memberKeyValues[iKey].ToString().Replace("'", "''") + "'";
                                     }
-
                                 }
+
                                 MeasureGroupAttribute granularity = GetGranularityAttribute(Partition.Parent.Dimensions[cd.ID]);
                                 if (granularity.KeyColumns.Count != 1)
                                 {
                                     throw new Exception("The granularity attribute " + granularity.CubeAttribute.Attribute.Name + " has a composite key which isn't supported.");
                                 }
-                                else if (granularity.Attribute.ID != a.ID)
+                                else if (granularity.Attribute.ID != a.ID || m.UniqueName.ToUpper().EndsWith(".UNKNOWNMEMBER"))
                                 {
-                                    //if the slice isn't being made at the granularity attribute, then we'll need an IN clause
+                                    //this branch handles two scenarios...
+                                    //1. the slice isn't being made at the granularity attribute, so we'll need an IN clause
+                                    //2. or this member is the Unknown member, so we'll need a NOT IN clause
 
                                     string sDimensionQuery = "";
                                     //check whether this is a snowflaked dimension
@@ -301,34 +328,46 @@ namespace ASStoredProcs
 
                                         sDimensionQuery = GetSnowflakeQuery(d.DataSourceView, child, parent);
                                     }
-                                    else
+                                    else //not snowflaked
                                     {
                                         columnsNeeded.Add(granularity.Attribute.KeyColumns[0]);
                                         sDimensionQuery = GetQueryDefinition(d.Parent, granularity.Attribute, granularity.Attribute.KeyColumns[0].Source, columnsNeeded);
                                     }
 
                                     if (sWhereForTuple.Length > 0) sWhereForTuple += " AND ";
-                                    sWhereForTuple += "[" + GetColumnBindingForDataItem(granularity.KeyColumns[0]).ColumnID + "] IN (\r\n"
-                                         + "select [" + GetColumnBindingForDataItem(granularity.Attribute.KeyColumns[0]).ColumnID + "] from (\r\n";
-                                    sWhereForTuple += sDimensionQuery;
-                                    sWhereForTuple += ") z \r\nWHERE (" + sWhereForMember + ")\r\n)\r\n";
+                                    sWhereForTuple += "[" + GetColumnBindingForDataItem(granularity.KeyColumns[0]).ColumnID + "] ";
+                                    if (m.UniqueName.ToUpper().EndsWith(".UNKNOWNMEMBER"))
+                                    {
+                                        sWhereForTuple += "NOT IN (\r\n";
+                                        sWhereForTuple += "select [" + GetColumnBindingForDataItem(granularity.Attribute.KeyColumns[0]).ColumnID + "] from (\r\n";
+                                        sWhereForTuple += sDimensionQuery;
+                                        sWhereForTuple += ") z\r\n)\r\n";
+                                    }
+                                    else
+                                    {
+                                        sWhereForTuple += "IN (\r\n";
+                                        sWhereForTuple += "select [" + GetColumnBindingForDataItem(granularity.Attribute.KeyColumns[0]).ColumnID + "] from (\r\n";
+                                        sWhereForTuple += sDimensionQuery;
+                                        sWhereForTuple += ") z \r\nWHERE (" + sWhereForMember + ")\r\n)\r\n";
+                                    }
                                 }
                                 else
                                 {
+                                    //slice is at granularity
                                     if (sWhereForTuple.Length > 0) sWhereForTuple += " AND ";
                                     sWhereForTuple += sWhereForMember;
                                 }
-                            }
+                            } //end if ensuring it was not the all member
+                        } //end of looping through members
 
-                            if (!bHasNonAllMember && !TupleMustBeOnlyAllMembers)
-                            {
-                                throw new Exception("The following tuple was entirely composed of All members: " + GetTupleUniqueName(t) + ". This is only allowed if there is only one tuple in the set.");
-                            }
-                            else if (bHasNonAllMember && TupleMustBeOnlyAllMembers)
-                            {
-                                //if the one member happens to be the only member in a non-aggregatable attribute, then you can just as easily partition by another attribute at the All level
-                                throw new Exception("The following tuple was NOT entirely composed of All members: " + GetTupleUniqueName(t) + ". This is required if there is only one tuple in the set.");
-                            }
+                        if (!bHasNonAllMember && !TupleMustBeOnlyAllMembers)
+                        {
+                            throw new Exception("The following tuple was entirely composed of All members: " + GetTupleUniqueName(t) + ". This is only allowed if there is only one tuple in the set.");
+                        }
+                        else if (bHasNonAllMember && TupleMustBeOnlyAllMembers)
+                        {
+                            //if the one member happens to be the only member in a non-aggregatable attribute, then you can just as easily partition by another attribute at the All level
+                            throw new Exception("The following tuple was NOT entirely composed of All members: " + GetTupleUniqueName(t) + ". This is required if there is only one tuple in the set.");
                         }
 
                         if (sWhereForTuple.Length > 0)
@@ -336,7 +375,7 @@ namespace ASStoredProcs
                             if (sWhere.Length > 0) sWhere += "\r\nOR ";
                             sWhere += "(" + sWhereForTuple + ")";
                         }
-                    }
+                    } //end of looping through tuples
                     return (sWhere.Length > 0 ? "\r\nWHERE " + sWhere : "");
                 }
             }
