@@ -110,6 +110,7 @@ namespace ASStoredProcs
                     if (!dictPartitions.ContainsKey(sGrouper))
                     {
                         string sPartitionName = mg.Name + " - " + sTupleName;
+                        sPartitionName = sPartitionName.Trim();
                         if (String.IsNullOrEmpty(PartitionGrouperExpressionString))
                         {
                             //make sure partition name is unique
@@ -259,8 +260,8 @@ namespace ASStoredProcs
                         {
                             string sWhereForMember = "";
 
-                            //check if this member is the all member
-                            if (m.UniqueName != m.ParentLevel.ParentHierarchy.Properties["ALL_MEMBER"].Value.ToString())
+                            //check that this member is NOT the all member
+                            if (m.ParentLevel.ParentHierarchy.Properties["ALL_MEMBER"].Value == null || m.UniqueName != m.ParentLevel.ParentHierarchy.Properties["ALL_MEMBER"].Value.ToString()) //note: it is possible that this line will blow up because of the following bug: https://connect.microsoft.com/SQLServer/feedback/ViewFeedback.aspx?FeedbackID=265114 It would require a big code rewrite to workaround this bug, and it only happens on a very few attributes that it may not be worth worrying about
                             {
                                 m.FetchAllProperties();
                                 AdomdClient.Dimension clientDimension = m.ParentLevel.ParentHierarchy.ParentDimension;
@@ -284,6 +285,12 @@ namespace ASStoredProcs
 
                                 //Note: can't think of a scenario when we would need to check a.IsAggregatable
 
+                                MeasureGroupAttribute granularity = GetGranularityAttribute(Partition.Parent.Dimensions[cd.ID]);
+                                if (granularity.KeyColumns.Count != 1)
+                                {
+                                    throw new Exception("The granularity attribute " + granularity.CubeAttribute.Attribute.Name + " has a composite key which isn't supported.");
+                                }
+
                                 List<DataItem> columnsNeeded = new List<DataItem>();
                                 object[] memberKeyValues = GetMemberKeys(m, a.KeyColumns.Count);
                                 for (int iKey = 0; iKey < a.KeyColumns.Count; iKey++)
@@ -291,7 +298,16 @@ namespace ASStoredProcs
                                     DataItem key = a.KeyColumns[iKey];
                                     columnsNeeded.Add(key);
                                     if (sWhereForMember.Length != 0) sWhereForMember += " AND ";
-                                    sWhereForMember += "[" + GetColumnBindingForDataItem(key).ColumnID + "]";
+                                    if (granularity.Attribute.ID == a.ID)
+                                    {
+                                        //slice is at the granularity attribute, so make sure to get right column name in case this is a role-playing dimension where the measure group column is a different name
+                                        sWhereForMember += "[" + GetColumnBindingForDataItem(granularity.KeyColumns[0]).ColumnID + "]";
+                                    }
+                                    else
+                                    {
+                                        //slice is not at the granularity attribute
+                                        sWhereForMember += "[" + GetColumnBindingForDataItem(key).ColumnID + "]";
+                                    }
 
                                     if (memberKeyValues[iKey] == null)
                                     {
@@ -303,19 +319,15 @@ namespace ASStoredProcs
                                     }
                                 }
 
-                                MeasureGroupAttribute granularity = GetGranularityAttribute(Partition.Parent.Dimensions[cd.ID]);
-                                if (granularity.KeyColumns.Count != 1)
+                                if (granularity.Attribute.ID != a.ID || m.UniqueName.ToUpper().EndsWith(".UNKNOWNMEMBER"))
                                 {
-                                    throw new Exception("The granularity attribute " + granularity.CubeAttribute.Attribute.Name + " has a composite key which isn't supported.");
-                                }
-                                else if (granularity.Attribute.ID != a.ID || m.UniqueName.ToUpper().EndsWith(".UNKNOWNMEMBER"))
-                                {
-                                    //this branch handles two scenarios...
+                                    //this branch handles three scenarios...
                                     //1. the slice isn't being made at the granularity attribute, so we'll need an IN clause
                                     //2. or this member is the Unknown member, so we'll need a NOT IN clause
+                                    //3. the slice is made on a reference dimension
 
                                     string sDimensionQuery = "";
-                                    //check whether this is a snowflaked dimension
+                                    //check whether this is a snowflaked dimension or a reference dimension
                                     if (GetColumnBindingForDataItem(a.KeyColumns[0]).TableID != GetColumnBindingForDataItem(granularity.Attribute.KeyColumns[0]).TableID)
                                     {
                                         ColumnBinding[] child = new ColumnBinding[] { (ColumnBinding)granularity.Attribute.KeyColumns[0].Source };
@@ -326,7 +338,10 @@ namespace ASStoredProcs
                                             parent[i] = (ColumnBinding)columnsNeeded[i].Source;
                                         }
 
-                                        sDimensionQuery = GetSnowflakeQuery(d.DataSourceView, child, parent);
+                                        //if this is a reference dimension and a role-playing dimension, there may be multiple columns which could get us the necessary snowflake joins... so note which column should be used for joins
+                                        ColumnBinding prefer = GetReferenceDimensionIntermediateAttributeColumn(Partition.Parent.Dimensions[cd.ID]);
+                                        
+                                        sDimensionQuery = GetSnowflakeQuery(d.DataSourceView, child, parent, prefer);
                                     }
                                     else //not snowflaked
                                     {
@@ -426,7 +441,17 @@ namespace ASStoredProcs
             
             private static MeasureGroupAttribute GetGranularityAttribute(MeasureGroupDimension mgdim)
             {
-                if (mgdim is RegularMeasureGroupDimension)
+                if (mgdim is ReferenceMeasureGroupDimension)
+                {
+                    ReferenceMeasureGroupDimension refmgdim = (ReferenceMeasureGroupDimension)mgdim;
+                    foreach (MeasureGroupAttribute a in ((RegularMeasureGroupDimension)refmgdim.Parent.Dimensions[refmgdim.IntermediateCubeDimensionID]).Attributes)
+                    {
+                        if (a.Type == MeasureGroupAttributeType.Granularity)
+                            return a;
+                    }
+                    throw new Exception("Granularity attribute not found in reference measure group dimension " + mgdim.CubeDimension.Name);
+                }
+                else if (mgdim is RegularMeasureGroupDimension)
                 {
                     foreach (MeasureGroupAttribute a in ((RegularMeasureGroupDimension)mgdim).Attributes)
                     {
@@ -437,8 +462,22 @@ namespace ASStoredProcs
                 }
                 else
                 {
-                    throw new Exception("Only measure group dimensions which are regular are supported. " + mgdim.CubeDimension.Name + " is type " + mgdim.GetType().Name);
+                    throw new Exception("Only measure group dimensions which are regular or reference are supported. " + mgdim.CubeDimension.Name + " is type " + mgdim.GetType().Name);
                 }
+            }
+
+            private static ColumnBinding GetReferenceDimensionIntermediateAttributeColumn(MeasureGroupDimension mgdim)
+            {
+                if (mgdim is ReferenceMeasureGroupDimension)
+                {
+                    ReferenceMeasureGroupDimension refmgdim = (ReferenceMeasureGroupDimension)mgdim;
+                    if (refmgdim.IntermediateGranularityAttribute.Attribute.KeyColumns.Count != 1)
+                    {
+                        throw new Exception("Reference dimension " + refmgdim.CubeDimension.Name + " had intermediate attribute with a composite key and this isn't supported by CreatePartitions.");
+                    }
+                    return GetColumnBindingForDataItem(refmgdim.IntermediateGranularityAttribute.Attribute.KeyColumns[0]);
+                }
+                return null;
             }
 
             private static ColumnBinding GetColumnBindingForDataItem(DataItem di)
@@ -449,7 +488,7 @@ namespace ASStoredProcs
                 }
                 else
                 {
-                    throw new Exception("Binding for column was unexpected type.");
+                    throw new Exception("Binding for column was unexpected type: " + di.Source.GetType().FullName);
                 }
             }
 
@@ -465,7 +504,7 @@ namespace ASStoredProcs
                 }
                 else
                 {
-                    throw new Exception("Binding for column was unexpected type.");
+                    throw new Exception("GetTableIdForDataItem: Binding for column was unexpected type: " + di.Source.GetType().FullName);
                 }
             }
 
@@ -538,7 +577,10 @@ namespace ASStoredProcs
                         {
                             throw new Exception("There was a problem constructing the query.");
                         }
-                        sQuery.Append("from [").Append(oTable.ExtendedProperties["DbTableName"].ToString()).Append("] as [").Append(oTable.ExtendedProperties["FriendlyName"].ToString()).AppendLine("]");
+                        sQuery.Append("from ");
+                        if (oTable.ExtendedProperties.ContainsKey("DbSchemaName")) sQuery.Append("[").Append(oTable.ExtendedProperties["DbSchemaName"].ToString()).Append("].");
+                        sQuery.Append("[").Append(oTable.ExtendedProperties["DbTableName"].ToString());
+                        sQuery.Append("] as [").Append(oTable.ExtendedProperties["FriendlyName"].ToString()).AppendLine("]");
                     }
                     else if (oTable.ExtendedProperties.ContainsKey("QueryDefinition"))
                     {
@@ -633,7 +675,7 @@ namespace ASStoredProcs
             }
 
             #region Snowflaked Dimension Handling
-            private static string GetSnowflakeQuery(DataSourceView dsv, ColumnBinding[] child, ColumnBinding[] parent)
+            private static string GetSnowflakeQuery(DataSourceView dsv, ColumnBinding[] child, ColumnBinding[] parent, ColumnBinding prefer)
             {
                 StringBuilder select = new StringBuilder();
                 Dictionary<DataTable, JoinedTable> tables = new Dictionary<DataTable, JoinedTable>();
@@ -650,6 +692,7 @@ namespace ASStoredProcs
                         }
                         else
                         {
+                            select.Append("[").Append(dc.ExtendedProperties["DbColumnName"].ToString()).Append("] = ");
                             select.AppendLine(dc.ExtendedProperties["ComputedColumnExpression"].ToString());
                         }
 
@@ -673,6 +716,7 @@ namespace ASStoredProcs
                         }
                         else
                         {
+                            select.Append("[").Append(dc.ExtendedProperties["DbColumnName"].ToString()).Append("] = ");
                             select.AppendLine(dc.ExtendedProperties["ComputedColumnExpression"].ToString());
                         }
 
@@ -715,7 +759,7 @@ namespace ASStoredProcs
 
                 //by now, all tables needed for joins will be in the dictionary
                 select.Append("\r\nfrom ").AppendLine(GetFromClauseForTable(baseTable));
-                select.Append(TraverseParentRelationshipsAndGetFromClause(tables, baseTable));
+                select.Append(TraverseParentRelationshipsAndGetFromClause(tables, baseTable, prefer));
 
                 return select.ToString();
             }
@@ -761,11 +805,16 @@ namespace ASStoredProcs
                 return bReturn;
             }
 
-            private static string TraverseParentRelationshipsAndGetFromClause(Dictionary<DataTable, JoinedTable> tables, DataTable t)
+            private static string TraverseParentRelationshipsAndGetFromClause(Dictionary<DataTable, JoinedTable> tables, DataTable t, ColumnBinding prefer)
             {
                 StringBuilder joins = new StringBuilder();
                 foreach (DataRelation r in t.ParentRelations)
                 {
+                    if (prefer != null && r.ChildColumns[0].Table.TableName == prefer.TableID && r.ChildColumns[0].ColumnName != prefer.ColumnID)
+                    {
+                        //this is the right table but is not the preferred column, so skip it
+                        continue;
+                    }
                     if (r.ParentTable != r.ChildTable && tables.ContainsKey(r.ParentTable) && !tables[r.ParentTable].AddedToQuery)
                     {
                         joins.Append("join ").AppendLine(GetFromClauseForTable(r.ParentTable));
@@ -775,7 +824,7 @@ namespace ASStoredProcs
                             joins.Append("[").Append(r.ParentTable.ExtendedProperties["FriendlyName"].ToString()).Append("].[").Append(r.ParentColumns[i].ColumnName).Append("]");
                             joins.Append(" = [").Append(r.ChildTable.ExtendedProperties["FriendlyName"].ToString()).Append("].[").Append(r.ChildColumns[i].ColumnName).AppendLine("]");
                         }
-                        joins.Append(TraverseParentRelationshipsAndGetFromClause(tables, r.ParentTable));
+                        joins.Append(TraverseParentRelationshipsAndGetFromClause(tables, r.ParentTable, prefer));
                     }
                 }
                 tables[t].AddedToQuery = true;
