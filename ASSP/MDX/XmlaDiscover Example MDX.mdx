@@ -1,0 +1,46 @@
+-- assembly must be registered with unrestricted permissions
+
+// lists all the rowsets that can be queried
+CALL ASSP.Discover("DISCOVER_SCHEMA_ROWSETS");
+// currently this sproc ignores nested structures, so it does not list the
+// available restrictions for the schema rowsets, you still have to run this
+// as an xmla query to see those details.
+
+// lists active connections, sessions and jobs
+CALL ASSP.Discover("DISCOVER_CONNECTIONS");
+CALL ASSP.Discover("DISCOVER_SESSIONS");
+CALL ASSP.Discover("DISCOVER_JOBS");
+
+// lists various meta data
+CALL ASSP.Discover("DBSCHEMA_CATALOGS");
+CALL ASSP.Discover("MDSCHEMA_CUBES");
+CALL ASSP.Discover("MDSCHEMA_DIMENSIONS");
+CALL ASSP.Discover("MDSCHEMA_HIERARCHIES");
+CALL ASSP.Discover("MDSCHEMA_FUNCTIONS");
+CALL ASSP.Discover("MDSCHEMA_KPIS");
+
+CALL ASSP.Discover("DISCOVER_PERFORMANCE_COUNTERS");
+
+// this is an example passing in a CUBE_NAME restriction
+// the available restrictions varies depending on the particular query.
+CALL ASSP.Discover("MDSCHEMA_DIMENSIONS","<CUBE_NAME>Channel Sales</CUBE_NAME>")
+
+// this is an example passing in a CUBE_NAME restriction
+// and the CATALOG property
+// a list of supported properties is available here:
+// ms-help://MS.SQLCC.v9/MS.SQLSVR.v9.en/xmla9/html/5745f7b4-6b96-44d5-b77c-f2831a898e5e.htm
+CALL ASSP.Discover("MDSCHEMA_DIMENSIONS","<CUBE_NAME>Channel Sales</CUBE_NAME>","<CATALOG>Adventure Works DW</CATALOG>")
+
+// Cancels the session with the specified SPID
+CALL ASSP.CancelSPID(768)
+// Cancels the specified session
+CALL ASSP.CancelSession("3DB7E7F0-FDC6-4759-BB8B-C96BA0169FBD")
+// Cancels the specified connection
+CALL ASSP.CancelConnection(5)
+
+// Clears the cache of the current Database
+CALL ASSP.ClearCache()
+
+// Clears the cache of the Adventure Works cube in the current Database
+// (if a cube with this name does not exist an exception will be thrown)
+CALL ASSP.ClearCache("Adventure Works")
