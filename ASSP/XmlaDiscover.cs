@@ -27,7 +27,8 @@ namespace ASStoredProcs
 {
     public class XmlaDiscover
     {
-        #region Discover
+
+#region Discover Functions
 
         [SafeToPrepare(true)]
         public DataTable Discover(string request)
@@ -66,10 +67,11 @@ namespace ASStoredProcs
             return dt;
 
         }
+#endregion
 
+#region Private Helper Functions
         private XmlaClient createXmlaClientAndConnect()
         {
-            string connectionString = "Data Source=" + Context.CurrentServerID + ";Provider=msolap.3;initial catalog=" + Context.CurrentDatabaseName + ";";
             XmlaClient client;
             client = new XmlaClient();
             client.Connect(Context.CurrentServerID);
@@ -181,9 +183,9 @@ namespace ASStoredProcs
             }
             dt.Rows.Add(dr);
         }
-        #endregion
+#endregion
 
-        #region Common Discover Functions
+#region Common Discover Functions
         [SafeToPrepare(true)]
         public DataTable DiscoverSessions()
         {
@@ -202,9 +204,9 @@ namespace ASStoredProcs
             return Discover("DISCOVER_SCHEMA_ROWSETS");
         }
 
-        #endregion
+#endregion
 
-        #region ClearCache
+#region ClearCache
         const string CLEARCACHE_TEMPLATE = "<Batch xmlns=\"http://schemas.microsoft.com/analysisservices/2003/engine\"><ClearCache><Object><DatabaseID>{0}</DatabaseID>{1}</Object></ClearCache></Batch>";
         const string CUBEID_TEMPLATE = "<CubeID>{0}</CubeID>";
 
@@ -214,6 +216,10 @@ namespace ASStoredProcs
         }
 
         // Clears the cache for the current database
+        // This method uses Server.Execute() as I need to establish an AMO
+        // connection anyway in order to find the CubeID from the CubeName
+        // Other methods in this class use the XmlaClient objects to execute
+        // the Xmla requests.
         public void ClearCache(string cubeName)
         {
             // only way to get a DatabaseID from a Database name appears to be to use AMO
@@ -255,9 +261,9 @@ namespace ASStoredProcs
             }
         }
 
-        #endregion
+#endregion
 
-        #region Cancel
+#region Cancel Functions
 
         const string CANCEL_TEMPLATE = "<Cancel xmlns=\"http://schemas.microsoft.com/analysisservices/2003/engine\">{0}</Cancel>";
         
@@ -297,8 +303,7 @@ namespace ASStoredProcs
             }
         }
 
-        #endregion
-
+#endregion
         
     } // MetaDataQueries class
 
