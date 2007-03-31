@@ -444,10 +444,6 @@ namespace ASStoredProcs
                 if (mgdim is ReferenceMeasureGroupDimension)
                 {
                     ReferenceMeasureGroupDimension refmgdim = (ReferenceMeasureGroupDimension)mgdim;
-                    if (refmgdim.Materialization == ReferenceDimensionMaterialization.Indirect)
-                    {
-                        throw new Exception("Reference dimension " + refmgdim.CubeDimension.Name + " must be materialized or aggregations will produce unexpected results: http://jesseorosz.spaces.live.com/Blog/cns!E322FD91218E57CF!250.entry");
-                    }
                     foreach (MeasureGroupAttribute a in ((RegularMeasureGroupDimension)refmgdim.Parent.Dimensions[refmgdim.IntermediateCubeDimensionID]).Attributes)
                     {
                         if (a.Type == MeasureGroupAttributeType.Granularity)
