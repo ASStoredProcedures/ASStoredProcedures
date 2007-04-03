@@ -62,6 +62,7 @@
     <Compile Include="FindCurrentMember.cs" />
     <Compile Include="LinkMember.cs" />
     <Compile Include="ListFunctions.cs" />
+    <Compile Include="MemoryUsage.cs" />
     <Compile Include="Multiply.cs" />
     <Compile Include="Parallel.cs" />
     <Compile Include="Partition.cs" />
@@ -80,6 +81,7 @@
     <None Include="MDX\FindCurrentMemberVerbose Example MDX Query.mdx" />
     <None Include="MDX\LinkMember Examples MDX Queries.mdx" />
     <None Include="MDX\ListFunctions Example MDX Queries.mdx" />
+    <None Include="MDX\MemoryUsage Example MDX Queries.mdx" />
     <None Include="MDX\Multiply Example MDX Query.mdx" />
     <None Include="MDX\Partition Example Queries.mdx" />
     <None Include="MDX\SetOperations Example.mdx" />
