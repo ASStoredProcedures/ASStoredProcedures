@@ -1,0 +1,19 @@
+/*
+After deploying the ASSP assembly with unrestricted permissions,
+run the following code once manually. It creates and populates
+a cube database called Memory Usage. This command can take 5
+minutes or more to complete depending upon the memory and disk
+footprint of the data in your Analysis Services instance.
+
+The data put in the Memory Usage cube comes from the
+DISCOVER_MEMORYUSAGE command.
+*/
+call ASSP.SnapshotMemoryUsageTotals()
+
+/*
+Then deploy the reports that are distributed with the ASSP release.
+These reports provide helpful views to analyze server memory usage.
+
+Suggestion: Consider creating a job in SQL Agent to execute the
+above command on schedule.
+*/
