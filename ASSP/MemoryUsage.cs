@@ -1419,7 +1419,7 @@ namespace ASStoredProcs
                     if (!bProcessed)
                     {
                         el = xml.CreateElement("ShrinkableMemory", "urn:schemas-microsoft-com:xml-analysis:rowset");
-                        el.InnerText = (GetInnerTextFromChildElement(xml.DocumentElement, "Shrinkable") == "true" ? GetInnerTextFromChildElement(xml.DocumentElement, "MemoryUsed") : "0");
+                        el.InnerText = (GetInnerTextFromChildElement(xml.DocumentElement, "Shrinkable") == "true" ? GetInnerTextFromChildElement(xml.DocumentElement, "MemoryAllocated") : "0");
                         if (el.InnerText != String.Empty) xml.DocumentElement.AppendChild(el);
                         el = xml.CreateElement("Folder1", "urn:schemas-microsoft-com:xml-analysis:rowset");
                         el.InnerText = "Others";
@@ -1811,7 +1811,7 @@ namespace ASStoredProcs
             {
                 XmlElement el;
                 el = doc.CreateElement("ShrinkableMemory", "urn:schemas-microsoft-com:xml-analysis:rowset");
-                el.InnerText = (GetInnerTextFromChildElement(doc.DocumentElement, "Shrinkable") == "true" ? GetInnerTextFromChildElement(doc.DocumentElement, "MemoryUsed") : "0");
+                el.InnerText = (GetInnerTextFromChildElement(doc.DocumentElement, "Shrinkable") == "true" ? GetInnerTextFromChildElement(doc.DocumentElement, "MemoryAllocated") : "0");
                 if (el.InnerText != String.Empty) doc.DocumentElement.AppendChild(el);
                 el = doc.CreateElement("Folder1", "urn:schemas-microsoft-com:xml-analysis:rowset"); //TODO: Combine this code with other places so it is not duplicated code
                 el.InnerText = Folder1;
