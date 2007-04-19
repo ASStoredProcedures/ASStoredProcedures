@@ -1017,7 +1017,7 @@ namespace ASStoredProcs
                     }
                     iRetries = 10;
                 }
-                catch (Exception ex)
+                catch
                 {
                     iRetries++;
                     try { reader.Close(); }
@@ -1242,7 +1242,7 @@ namespace ASStoredProcs
                     }
                     iRetries = 10;
                 }
-                catch (Exception ex)
+                catch
                 {
                     iRetries++;
                     try { reader.Close(); }
