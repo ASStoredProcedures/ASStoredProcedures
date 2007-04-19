@@ -1,13 +1,13 @@
 /*============================================================================
   File:    SetOperations.cs
 
-  Summary: 
+  Summary: Various functions which transform sets
 
   Date:    August 12, 2006
 
   ----------------------------------------------------------------------------
   This file is part of the Analysis Services Stored Procedure Project.
-  http://www.codeplex.com/Wiki/View.aspx?ProjectName=ASStoredProcedures
+  http://www.codeplex.com/ASStoredProcedures
   
   THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
   KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
@@ -16,6 +16,7 @@
 ============================================================================*/
 
 using Microsoft.AnalysisServices.AdomdServer;
+using System.Collections.Generic;
 
 namespace ASStoredProcs
 {
@@ -109,5 +110,83 @@ namespace ASStoredProcs
 
             return sb.ToSet();
         }
+
+
+        public static Set Order(Set InputSet, Expression SortExpression)
+        {
+            return Order(InputSet, SortExpression, false);
+        }
+
+        public static Set Order(Set InputSet, Expression SortExpression, bool SortDescending)
+        {
+            List<TupleValue> TupleValues = new List<TupleValue>();
+
+            Context.TraceEvent(100, 0, "Start getting data");
+
+            int i = 0;
+            foreach (Tuple t in InputSet.Tuples)
+            {
+                TupleValues.Add(new TupleValue(t, (double)SortExpression.Calculate(t)));
+                i++;
+                Context.CheckCancelled();
+            }
+
+            int cTuples = i;
+
+            Context.TraceEvent(100, cTuples, "Finish getting data for " + cTuples.ToString() + " tuples");
+
+            Context.TraceEvent(200, cTuples, "Start sorting");
+            TupleValues.Sort();
+            Context.TraceEvent(200, cTuples, "Finish sorting");
+
+            SetBuilder sb = new SetBuilder();
+
+            if (SortDescending)
+            {
+                for (i = 0; i < cTuples; i++)
+                {
+                    sb.Add(TupleValues[i].Tuple);
+                }
+            }
+            else
+            {
+                for (i = cTuples - 1; i >= 0; i--)
+                {
+                    sb.Add(TupleValues[i].Tuple);
+                }
+            }
+
+            return sb.ToSet();
+        }
+
+        #region Internal Sorting Classes
+        private class TupleValue : System.IComparable
+        {
+            private Tuple _Tuple;
+            internal Tuple Tuple
+            {
+                get { return _Tuple; }
+                private set { _Tuple = value; }
+            }
+            private double _Value;
+
+            public TupleValue(Tuple t, double v)
+            {
+                _Tuple = t;
+                _Value = v;
+            }
+
+            public int CompareTo(object obj)
+            {
+                if (obj is TupleValue)
+                {
+                    Context.CheckCancelled();
+                    TupleValue tv = (TupleValue)obj;
+                    return tv._Value.CompareTo(_Value);
+                }
+                throw new System.ArgumentException("object is not a TupleValue");
+            }
+        }
+        #endregion
     }
 }

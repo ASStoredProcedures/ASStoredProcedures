@@ -42,3 +42,38 @@ Head([Date].[Calendar].[Calendar Year].members*[Product].[Product Categories].[C
 ,2,1)
 on 1
 from [Adventure Works]
+
+go
+
+// An example of MDX query to use the ASSP Order function
+// This query sorts a set in descending order
+with 
+member y as Count(ASSP.[Order]([Customer].[Customer].[Customer].MEMBERS*[Product].[Category].[Category].MEMBERS*[Product].[Style].[Style].MEMBERS, Measures.[Internet Sales Amount], true))
+select y on 0
+from [Adventure Works]
+
+go
+
+// The ASSP Order function may outperform the build-in Order function in some situations
+// notice this query using the built-in function takes 3x as long as the ASSP Order function
+with 
+member y as Count(Order([Customer].[Customer].[Customer].MEMBERS*[Product].[Category].[Category].MEMBERS*[Product].[Style].[Style].MEMBERS, Measures.[Internet Sales Amount], BDESC))
+select y on 0
+from [Adventure Works]
+
+go
+
+// A more realistic usage example of the ASSP Order function
+// This query sorts product categories ascending on Internet Sales Amount
+select [Measures].[Internet Sales Amount] on 0,
+ASSP.[Order]([Product].[Category].[Category].MEMBERS,[Measures].[Internet Sales Amount]) on 1
+from [Adventure Works]
+
+go
+
+// A more realistic usage example of the ASSP Order function
+// This query sorts product categories descending on Internet Sales Amount
+select [Measures].[Internet Sales Amount] on 0,
+ASSP.[Order]([Product].[Category].[Category].MEMBERS,[Measures].[Internet Sales Amount],true) on 1
+from [Adventure Works]
+
