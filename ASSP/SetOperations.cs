@@ -26,10 +26,17 @@ namespace ASStoredProcs
         public Set ReverseSet(Set InputSet)
         {
             SetBuilder sb = new SetBuilder();
-            int c = InputSet.Tuples.Count;
+            List<Tuple> l = new List<Tuple>();
+            int c = 0;
+            foreach (Tuple t in InputSet.Tuples) //use enumerator, not indexes as specified at http://sqljunkies.com/WebLog/mosha/archive/2007/04/19/stored_procs_best_practices.aspx
+            {
+                l.Add(t);
+                c++;
+                Context.CheckCancelled();
+            }
             for (int i = c - 1; i >= 0; i--)
             {
-                sb.Add(InputSet.Tuples[i]);
+                sb.Add(l[i]);
             }
 
             return sb.ToSet();
@@ -121,23 +128,23 @@ namespace ASStoredProcs
         {
             List<TupleValue> TupleValues = new List<TupleValue>();
 
-            Context.TraceEvent(100, 0, "Start getting data");
+            Context.TraceEvent(100, 0, "Order: Start getting data");
 
             int i = 0;
             foreach (Tuple t in InputSet.Tuples)
             {
                 TupleValues.Add(new TupleValue(t, (double)SortExpression.Calculate(t)));
                 i++;
-                Context.CheckCancelled();
+                //no need to call Context.CheckCancelled() because Calculate already checks it
             }
 
             int cTuples = i;
 
-            Context.TraceEvent(100, cTuples, "Finish getting data for " + cTuples.ToString() + " tuples");
+            Context.TraceEvent(100, cTuples, "Order: Finish getting data for " + cTuples.ToString() + " tuples");
 
-            Context.TraceEvent(200, cTuples, "Start sorting");
+            Context.TraceEvent(200, cTuples, "Order: Start sorting");
             TupleValues.Sort();
-            Context.TraceEvent(200, cTuples, "Finish sorting");
+            Context.TraceEvent(200, cTuples, "Order: Finish sorting");
 
             SetBuilder sb = new SetBuilder();
 
