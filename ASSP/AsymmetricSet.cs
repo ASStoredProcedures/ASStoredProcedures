@@ -78,11 +78,12 @@ namespace ASStoredProcs
         #region "Implementation"
         private static Set buildAsymmetricSet(params Member[] memberList)
         {
-            
+            Context.TraceEvent(100, 0, "AsymmetricSet: Starting");
             // build a list of all the unique Hierarchies from the members in memberList.
             List<Hierarchy> hierList = new List<Hierarchy>();
             foreach (Member m in memberList)
             {
+
                 // Check that the member variable is correctly populated. If the user passes
                 // in a non-existant member we get a member object whose properties are all
                 // null or empty strings.
@@ -131,6 +132,7 @@ namespace ASStoredProcs
                         }// using tb
                     }
                 } //foreach paramMbr        
+                Context.TraceEvent(100, asymSet.Count, "AsymmetricSet: Finished (" + asymSet.Count.ToString() + " tuples generated)");
                 return asymSet.ToSet();
             } //using SetBuilder
         }

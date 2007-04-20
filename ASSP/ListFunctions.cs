@@ -41,6 +41,7 @@ namespace ASStoredProcs
             }
         }
 
+        [SafeToPrepare(true)]
         public DataTable ListFunctions(string databaseName)
         {
             Microsoft.AnalysisServices.Server svr = new Microsoft.AnalysisServices.Server();
@@ -66,6 +67,7 @@ namespace ASStoredProcs
 
         private DataTable getFunctionList(AssemblyCollection assColl)
         {
+            Context.TraceEvent(100, 0, "ListFunctions: Starting");
             // build the structure for the datatable which is returned
             DataTable dtFuncs = new DataTable("dtFunctions");
             dtFuncs.Columns.Add("Assembly", typeof(String));
@@ -74,16 +76,30 @@ namespace ASStoredProcs
             dtFuncs.Columns.Add("ReturnType", typeof(String));
             dtFuncs.Columns.Add("Parameters", typeof(String));
 
+            if (Context.ExecuteForPrepare)
+            {
+                // we can exit after building the table function if this is only
+                // being executed for a prepare.
+                Context.TraceEvent(100, 0, "ListFunctions: Finished (ExecuteForPrepare)");
+                return dtFuncs;
+            }
+
             foreach (Microsoft.AnalysisServices.Assembly ass in assColl)
             {
+                Context.CheckCancelled();
+
                 if (ass is ClrAssembly) // we can only use reflection against .Net assemblies
                 {
                     Type t = ass.GetType();
 
                     ClrAssembly clrAss = (ClrAssembly)ass;
 
+                    Context.TraceEvent(100, 0, "ListFunctions: Processing the " + clrAss.Name + " Assembly");
+
                     foreach (ClrAssemblyFile f in clrAss.Files) // an assembly can have multiple files
                     {
+                        Context.CheckCancelled();
+
                         // We only want to get the "main" asembly file and only files which have data
                         // (Some of the system assemblies appear to be registrations only and do not
                         // have any data.
@@ -96,6 +112,8 @@ namespace ASStoredProcs
 
                             foreach (string block in f.Data)
                             {
+                                Context.CheckCancelled();
+
                                 buff = System.Convert.FromBase64String(block);
                                 System.Array.Resize(ref rawAss, rawAss.Length + buff.Length);
                                 buff.CopyTo(rawAss, iPos);
@@ -104,6 +122,7 @@ namespace ASStoredProcs
 
                             // use reflection to extract the public types and methods from the 
                             // re-assembled assembly.
+                            Context.TraceEvent(100, 0, "ListFunctions: Starting reflection against " + f.Name);
                             System.Reflection.Assembly asAss = System.Reflection.Assembly.Load(rawAss);
                             Type[] assTypes = asAss.GetTypes();
                             for (int i = 0; i < assTypes.Length; i++)
@@ -117,6 +136,8 @@ namespace ASStoredProcs
                                     int paramCnt = 0;
                                     foreach (MethodInfo meth in methods)
                                     {
+                                        Context.CheckCancelled();
+
                                         // build the parameter signature as a string
                                         ParameterInfo[] Params = meth.GetParameters();
                                         System.Text.StringBuilder paramList = new System.Text.StringBuilder();
@@ -152,11 +173,14 @@ namespace ASStoredProcs
                                     } // foreach meth
                                 } // if t2.IsPublic
                             } // assTypes.Length
+                            Context.TraceEvent(100, 0, "ListFunctions: Finished reflecting against " + f.Name);
                         } // if f.data.count > 0 && f.Type == main
+
                     } // foreach f
                 } // if ass is clrAssembly
             } // foreach ass
             dtFuncs.AcceptChanges();
+            Context.TraceEvent(100, dtFuncs.Rows.Count, "ListFunctions: Finished (" + dtFuncs.Rows.Count.ToString() + " function signatures)");
             return dtFuncs;
         }
 
