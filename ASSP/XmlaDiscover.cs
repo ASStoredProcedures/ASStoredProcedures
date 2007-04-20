@@ -45,6 +45,8 @@ namespace ASStoredProcs
         [SafeToPrepare(true)]
         public DataTable Discover(string request, string restrictions, string properties) 
         {
+            Context.TraceEvent(100, 0, "Discover: Starting ("+ request +")");
+            
             XmlaClient client = createXmlaClientAndConnect();
             DataTable dt = new DataTable();
             // if no properties restriction is specified, default to using
@@ -63,7 +65,9 @@ namespace ASStoredProcs
             finally
             {
                 client.Disconnect();
+                Context.TraceEvent(100, 0, "Discover: XML/A Connection disconnected");
             }
+            Context.TraceEvent(100,0,"Discover: Finished (" + dt.Rows.Count.ToString() + " rows returned");
             return dt;
 
         }
@@ -74,7 +78,9 @@ namespace ASStoredProcs
         {
             XmlaClient client;
             client = new XmlaClient();
+            Context.TraceEvent(100,0,"Discover: About to Establish XML/A Connection");
             client.Connect(Context.CurrentServerID);
+            Context.TraceEvent(100,0,"Discover: XML/A Connection established");
             return client;
         }
 
@@ -91,9 +97,17 @@ namespace ASStoredProcs
             //xmlDom.ChildNodes[0].ChildNodes[0].ChildNodes[0].ChildNodes[0].Attributes.Count
             foreach (XmlNode n in doc.ChildNodes[0].ChildNodes[0].ChildNodes)
             {
+                Context.CheckCancelled();
+
                 if ((n.NodeType == XmlNodeType.Element) && (n.LocalName == "schema"))
                 {
                     dt = buildTableFromSchema(n);
+                    if (Context.ExecuteForPrepare)
+                    {
+                        // If this is a prepare call then we only need the table structure
+                        // and can exit the loop here.
+                        break; 
+                    }
                 }
                 if ((n.NodeType == XmlNodeType.Element) && (n.LocalName == "row"))
                 {
@@ -106,10 +120,13 @@ namespace ASStoredProcs
 
         private DataTable buildTableFromSchema(XmlNode n)
         {
+            Context.TraceEvent(100, 0, "Discover: Starting to build result table structure");
             DataTable dt = new DataTable();
 
             foreach (XmlNode n2 in n.ChildNodes)
             {
+                Context.CheckCancelled(); // Check if the user has cancelled 
+
                 System.Diagnostics.Debug.WriteLine(n.Value);
                 if ((n2.NodeType == XmlNodeType.Element) && (n2.LocalName == "complexType"))
                 {
@@ -126,6 +143,8 @@ namespace ASStoredProcs
                                 Type typ = null;
                                 foreach (XmlAttribute a2 in n3.Attributes)
                                 {
+                                    Context.CheckCancelled(); // Check if the user has cancelled 
+
                                     switch (a2.Name)
                                     {
                                         case "sql:field":
@@ -168,6 +187,7 @@ namespace ASStoredProcs
                     }
                 }
             }
+            Context.TraceEvent(100, 0, "Discover: Finished building result table structure");
             return dt;
         }//buildTableFromSchema
 
@@ -176,6 +196,8 @@ namespace ASStoredProcs
             DataRow dr = dt.NewRow();
             foreach (XmlNode e in n.ChildNodes)
             {
+                Context.CheckCancelled(); // Check if the user has cancelled 
+
                 if (dt.Columns.Contains(e.LocalName))
                 {
                     dr[e.LocalName] = e.InnerText;
@@ -264,6 +286,9 @@ namespace ASStoredProcs
 #endregion
 
 #region Cancel Functions
+        // NOTE: None of these function have calls to Context.TraceEvent as they are simple wrappers around XML/A 
+        //       calls anyway which will be visible in SQL Profiler.
+
 
         const string CANCEL_TEMPLATE = "<Cancel xmlns=\"http://schemas.microsoft.com/analysisservices/2003/engine\">{0}</Cancel>";
         

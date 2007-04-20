@@ -48,10 +48,12 @@ namespace ASStoredProcs
 
         public Boolean IsLike(String valueToMatch, String pattern, Boolean caseSensitive)
         {
+            Context.TraceEvent(100, 0, "IsLike: Starting");
             // todo - cache regex objects here
             RegexOptions optRegex = RegexOptions.Compiled;
             if (!caseSensitive) {optRegex = optRegex | RegexOptions.IgnoreCase;}
             Regex r = getCachedRegEx(LikeToRegEx(pattern), optRegex);
+            Context.TraceEvent(100, 0, "IsLike: Finished");
             return (Boolean) r.Match(valueToMatch).Success;
         }
 
@@ -74,9 +76,12 @@ namespace ASStoredProcs
 
         public static Set RegExFilter(Set setToFilter, String pattern, Expression exp, Boolean caseSensitive)
         {
+            Context.TraceEvent(100, 0, "RegExFilter: Starting");
+
             // If there is no startsWith string, just return the whole set
             if (pattern.Length == 0)
             {
+                Context.TraceEvent(100, 0, "RegExFilter: Finished (No pattern parameter)");
                 return setToFilter;
             }
 
@@ -103,6 +108,7 @@ namespace ASStoredProcs
                         }
                         
                     }
+                    Context.TraceEvent(100, sb.Count, "RegExFilter: Finished (returning " + sb.Count.ToString() + " tuples");
                     return sb.ToSet();
                 }
             }
@@ -125,6 +131,9 @@ namespace ASStoredProcs
         /// <returns>string</returns>
         public static string LikeToRegEx(string pattern)
         {
+            Context.TraceEvent(100, 0, "Like: Converting Like to RegEx");
+            Context.CheckCancelled(); // Check if the user has cancelled 
+
             StringBuilder sb = new StringBuilder(pattern);
             // the order of the following operations is important or one replacement
             // can end up corrupting a previous replacement.
@@ -155,11 +164,14 @@ namespace ASStoredProcs
 
         private static Regex getCachedRegEx(string pattern, RegexOptions opt)
         {
+            Context.CheckCancelled(); // Check if the user has cancelled 
+
             Boolean caseSensitive = (opt | RegexOptions.IgnoreCase) == RegexOptions.IgnoreCase;
             RegExCacheIndex ri = new RegExCacheIndex(pattern, caseSensitive);
 
             if (regExCache.ContainsKey(ri))
             {
+                Context.TraceEvent(100, 0, "RegExFilter: Returning Cached RegEx");
                 Regex cachedRegEx;
                 lock (regExCache.SyncRoot)
                 {
@@ -169,6 +181,7 @@ namespace ASStoredProcs
             }
             else
             {
+                Context.TraceEvent(100, 0, "RegExFilter: Adding RegEx to Cache");
                 Regex newRegEx = new Regex(pattern, opt);
                 lock(regExCache.SyncRoot)
                 {
@@ -230,7 +243,9 @@ namespace ASStoredProcs
 
         int IEqualityComparer.GetHashCode(object obj)
         {
-            return obj.GetHashCode();
+            RegExCacheIndex ri = (RegExCacheIndex)obj;
+            string pat = (ri.CaseSensitive ? "T:" : "F:") + ri.Pattern;
+            return pat.GetHashCode();
         }
 
         #endregion
