@@ -167,7 +167,7 @@ namespace ASStoredProcs
         }
 
         #region Internal Sorting Classes
-        private class TupleValue : System.IComparable
+        private class TupleValue : System.IComparable<TupleValue>
         {
             private Tuple _Tuple;
             internal Tuple Tuple
@@ -183,15 +183,10 @@ namespace ASStoredProcs
                 _Value = v;
             }
 
-            public int CompareTo(object obj)
+            public int CompareTo(TupleValue t)
             {
-                if (obj is TupleValue)
-                {
-                    Context.CheckCancelled();
-                    TupleValue tv = (TupleValue)obj;
-                    return tv._Value.CompareTo(_Value);
-                }
-                throw new System.ArgumentException("object is not a TupleValue");
+                Context.CheckCancelled();
+                return t._Value.CompareTo(_Value);
             }
         }
         #endregion
