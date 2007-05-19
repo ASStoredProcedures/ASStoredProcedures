@@ -41,6 +41,7 @@ namespace ASStoredProcs
 
             AdomdClient.Set s = null;
             AdomdClient.AdomdConnection conn = new AdomdClient.AdomdConnection("Data Source=" + AdomdServer.Context.CurrentServerID + ";Initial Catalog=" + AdomdServer.Context.CurrentDatabaseName);
+            conn.ShowHiddenObjects = true; //ShowHiddenObjects=true allows you to see properties (like member.ParentLevel) of dimension attributes which aren't visible: https://connect.microsoft.com/SQLServer/feedback/ViewFeedback.aspx?FeedbackID=265114
             conn.Open();
             Server server = new Server();
             server.Connect("*"); //connect to the current session... important to connect this way or else you will get a deadlock when you go to save the partition changes
@@ -261,7 +262,7 @@ namespace ASStoredProcs
                             string sWhereForMember = "";
 
                             //check that this member is NOT the all member
-                            if (m.ParentLevel.ParentHierarchy.Properties["ALL_MEMBER"].Value == null || m.UniqueName != m.ParentLevel.ParentHierarchy.Properties["ALL_MEMBER"].Value.ToString()) //note: it is possible that this line will blow up because of the following bug: https://connect.microsoft.com/SQLServer/feedback/ViewFeedback.aspx?FeedbackID=265114 It would require a big code rewrite to workaround this bug, and it only happens on a very few attributes that it may not be worth worrying about
+                            if (m.ParentLevel.ParentHierarchy.Properties["ALL_MEMBER"].Value == null || m.UniqueName != m.ParentLevel.ParentHierarchy.Properties["ALL_MEMBER"].Value.ToString())
                             {
                                 m.FetchAllProperties();
                                 AdomdClient.Dimension clientDimension = m.ParentLevel.ParentHierarchy.ParentDimension;
@@ -635,6 +636,7 @@ namespace ASStoredProcs
             private static object[] GetMemberKeys(AdomdClient.Member m, int iNumKeys)
             {
                 AdomdClient.AdomdConnection conn = new AdomdClient.AdomdConnection("Data Source=" + AdomdServer.Context.CurrentServerID + ";Initial Catalog=" + AdomdServer.Context.CurrentDatabaseName);
+                conn.ShowHiddenObjects = true; //ShowHiddenObjects=true allows you to see properties (like member.ParentLevel) of dimension attributes which aren't visible: https://connect.microsoft.com/SQLServer/feedback/ViewFeedback.aspx?FeedbackID=265114
                 conn.Open();
                 try
                 {
