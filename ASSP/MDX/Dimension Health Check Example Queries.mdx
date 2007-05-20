@@ -1,0 +1,20 @@
+--The purpose of Dimension Health Check is to check:
+-- 1. Checks that attribute relationships hold true according to the data. For
+--    instance, if a Subcategory is actually a part of more than one Category, that
+--    attribute relationship should not be used. Usually, fixing this problem
+--    involves revisiting the definition of the keys for each attribute.
+-- 2. Checks the definition of attribute key to determine uniqueness. Particularly,
+--    this check determines if a particular key has more than one name. 
+
+--The ListDimensionErrors command returns a dataset which can be consumed by the
+--Dimension Health Check report in the ASSP Reports project
+--This dataset shows you any problems with the data underlying the dimension
+call ASSP.ListDimensionErrors("Geography")
+
+GO
+
+--The ListDimensionsWithErrors function returns a dataset listing the names of
+--any dimensions which have health problems
+--This function can drive a data-driven subscription in Reporting Services which
+--can send out a notification email when there are dimension health problems
+call ASSP.ListDimensionsWithErrors()

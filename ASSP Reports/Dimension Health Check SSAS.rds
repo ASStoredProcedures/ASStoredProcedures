@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RptDataSource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Name>Dimension Health Check SSAS</Name>
+  <DataSourceID>c4d2ca7d-b85f-429d-b526-9b12a069bf61</DataSourceID>
+  <ConnectionProperties>
+    <Extension>OLEDB-MD</Extension>
+    <ConnectString>Data Source=localhost;Initial Catalog="Adventure Works DW"</ConnectString>
+    <IntegratedSecurity>true</IntegratedSecurity>
+  </ConnectionProperties>
+</RptDataSource>

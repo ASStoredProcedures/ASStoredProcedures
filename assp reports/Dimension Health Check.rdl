@@ -1,0 +1,790 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2005/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSources>
+    <DataSource Name="Dimension Health Check SSAS">
+      <DataSourceReference>Dimension Health Check SSAS</DataSourceReference>
+      <rd:DataSourceID>a0f20b3f-9040-42b4-8762-8ad30f6332fc</rd:DataSourceID>
+    </DataSource>
+  </DataSources>
+  <BottomMargin>0.5in</BottomMargin>
+  <RightMargin>0.5in</RightMargin>
+  <PageWidth>11in</PageWidth>
+  <ReportParameters>
+    <ReportParameter Name="Dimension">
+      <DataType>String</DataType>
+      <Prompt>Dimension:</Prompt>
+      <ValidValues>
+        <DataSetReference>
+          <DataSetName>DimensionsList</DataSetName>
+          <ValueField>CorrectedDimensionName</ValueField>
+          <LabelField>CorrectedDimensionName</LabelField>
+        </DataSetReference>
+      </ValidValues>
+    </ReportParameter>
+  </ReportParameters>
+  <rd:DrawGrid>true</rd:DrawGrid>
+  <InteractiveWidth>8.5in</InteractiveWidth>
+  <rd:GridSpacing>0.0625in</rd:GridSpacing>
+  <rd:SnapToGrid>true</rd:SnapToGrid>
+  <Body>
+    <ReportItems>
+      <Textbox Name="textbox5">
+        <Top>0.5in</Top>
+        <rd:DefaultName>textbox5</rd:DefaultName>
+        <ZIndex>2</ZIndex>
+        <Style>
+          <PaddingLeft>2pt</PaddingLeft>
+          <PaddingBottom>2pt</PaddingBottom>
+          <PaddingRight>2pt</PaddingRight>
+          <FontStyle>Italic</FontStyle>
+          <PaddingTop>2pt</PaddingTop>
+        </Style>
+        <CanGrow>true</CanGrow>
+        <Height>0.375in</Height>
+        <Value>Checks whether attribute relationships hold true according to the data.
+Also checks definition of attribute keys to determine if they are unique.</Value>
+      </Textbox>
+      <Table Name="table1">
+        <NoRows>No dimension health problems found</NoRows>
+        <DataSetName>DimensionHealthCheckResults</DataSetName>
+        <Top>1in</Top>
+        <TableGroups>
+          <TableGroup>
+            <Header>
+              <TableRows>
+                <TableRow>
+                  <TableCells>
+                    <TableCell>
+                      <ColSpan>10</ColSpan>
+                      <ReportItems>
+                        <Textbox Name="ErrorDescription">
+                          <ZIndex>20</ZIndex>
+                          <ToggleImage>
+                            <InitialState>true</InitialState>
+                          </ToggleImage>
+                          <Style>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingBottom>2pt</PaddingBottom>
+                            <FontSize>8pt</FontSize>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                          </Style>
+                          <CanGrow>true</CanGrow>
+                          <Value>=First(Fields!ErrorDescription.Value)</Value>
+                        </Textbox>
+                      </ReportItems>
+                    </TableCell>
+                  </TableCells>
+                  <Height>0.1875in</Height>
+                </TableRow>
+                <TableRow>
+                  <TableCells>
+                    <TableCell>
+                      <ReportItems>
+                        <Textbox Name="textbox2">
+                          <rd:DefaultName>textbox2</rd:DefaultName>
+                          <ZIndex>19</ZIndex>
+                          <Style>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingBottom>2pt</PaddingBottom>
+                            <FontWeight>700</FontWeight>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                          </Style>
+                          <CanGrow>true</CanGrow>
+                          <Value />
+                        </Textbox>
+                      </ReportItems>
+                    </TableCell>
+                    <TableCell>
+                      <ReportItems>
+                        <Textbox Name="textbox25">
+                          <ZIndex>18</ZIndex>
+                          <Style>
+                            <TextAlign>Left</TextAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingBottom>2pt</PaddingBottom>
+                            <FontWeight>700</FontWeight>
+                            <FontSize>8pt</FontSize>
+                            <Format>P1</Format>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                          </Style>
+                          <CanGrow>true</CanGrow>
+                          <Value>=First(Fields!Column1Name.Value)</Value>
+                        </Textbox>
+                      </ReportItems>
+                    </TableCell>
+                    <TableCell>
+                      <ReportItems>
+                        <Textbox Name="textbox26">
+                          <ZIndex>17</ZIndex>
+                          <Style>
+                            <TextAlign>Left</TextAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingBottom>2pt</PaddingBottom>
+                            <FontWeight>700</FontWeight>
+                            <FontSize>8pt</FontSize>
+                            <Format>N0</Format>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                          </Style>
+                          <CanGrow>true</CanGrow>
+                          <Value>=First(Fields!Column2Name.Value)</Value>
+                        </Textbox>
+                      </ReportItems>
+                    </TableCell>
+                    <TableCell>
+                      <ReportItems>
+                        <Textbox Name="textbox29">
+                          <ZIndex>16</ZIndex>
+                          <Style>
+                            <TextAlign>Left</TextAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingBottom>2pt</PaddingBottom>
+                            <FontWeight>700</FontWeight>
+                            <FontSize>8pt</FontSize>
+                            <Format>N0</Format>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                          </Style>
+                          <CanGrow>true</CanGrow>
+                          <Value>=First(Fields!Column3Name.Value)</Value>
+                        </Textbox>
+                      </ReportItems>
+                    </TableCell>
+                    <TableCell>
+                      <ReportItems>
+                        <Textbox Name="textbox30">
+                          <ZIndex>15</ZIndex>
+                          <Style>
+                            <TextAlign>Left</TextAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingBottom>2pt</PaddingBottom>
+                            <FontWeight>700</FontWeight>
+                            <FontSize>8pt</FontSize>
+                            <Format>N0</Format>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                          </Style>
+                          <CanGrow>true</CanGrow>
+                          <Value>=First(Fields!Column4Name.Value)</Value>
+                        </Textbox>
+                      </ReportItems>
+                    </TableCell>
+                    <TableCell>
+                      <ReportItems>
+                        <Textbox Name="textbox31">
+                          <ZIndex>14</ZIndex>
+                          <Style>
+                            <TextAlign>Left</TextAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingBottom>2pt</PaddingBottom>
+                            <FontWeight>700</FontWeight>
+                            <FontSize>8pt</FontSize>
+                            <Format>N0</Format>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                          </Style>
+                          <CanGrow>true</CanGrow>
+                          <Value>=First(Fields!Column5Name.Value)</Value>
+                        </Textbox>
+                      </ReportItems>
+                    </TableCell>
+                    <TableCell>
+                      <ReportItems>
+                        <Textbox Name="textbox32">
+                          <ZIndex>13</ZIndex>
+                          <Style>
+                            <TextAlign>Left</TextAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingBottom>2pt</PaddingBottom>
+                            <FontWeight>700</FontWeight>
+                            <FontSize>8pt</FontSize>
+                            <Format>N0</Format>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                          </Style>
+                          <CanGrow>true</CanGrow>
+                          <Value>=First(Fields!Column6Name.Value)</Value>
+                        </Textbox>
+                      </ReportItems>
+                    </TableCell>
+                    <TableCell>
+                      <ReportItems>
+                        <Textbox Name="textbox33">
+                          <ZIndex>12</ZIndex>
+                          <Style>
+                            <TextAlign>Left</TextAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingBottom>2pt</PaddingBottom>
+                            <FontWeight>700</FontWeight>
+                            <FontSize>8pt</FontSize>
+                            <Format>N0</Format>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                          </Style>
+                          <CanGrow>true</CanGrow>
+                          <Value>=First(Fields!Column7Name.Value)</Value>
+                        </Textbox>
+                      </ReportItems>
+                    </TableCell>
+                    <TableCell>
+                      <ReportItems>
+                        <Textbox Name="textbox34">
+                          <ZIndex>11</ZIndex>
+                          <Style>
+                            <TextAlign>Left</TextAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingBottom>2pt</PaddingBottom>
+                            <FontWeight>700</FontWeight>
+                            <FontSize>8pt</FontSize>
+                            <Format>N0</Format>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                          </Style>
+                          <CanGrow>true</CanGrow>
+                          <Value>=First(Fields!Column8Name.Value)</Value>
+                        </Textbox>
+                      </ReportItems>
+                    </TableCell>
+                    <TableCell>
+                      <ReportItems>
+                        <Textbox Name="textbox35">
+                          <ZIndex>10</ZIndex>
+                          <Style>
+                            <TextAlign>Left</TextAlign>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingBottom>2pt</PaddingBottom>
+                            <FontWeight>700</FontWeight>
+                            <FontSize>8pt</FontSize>
+                            <Format>P0</Format>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                          </Style>
+                          <CanGrow>true</CanGrow>
+                          <Value>=First(Fields!Column9Name.Value)</Value>
+                        </Textbox>
+                      </ReportItems>
+                    </TableCell>
+                  </TableCells>
+                  <Height>0.1875in</Height>
+                  <Visibility>
+                    <ToggleItem>ErrorDescription</ToggleItem>
+                  </Visibility>
+                </TableRow>
+              </TableRows>
+            </Header>
+            <Grouping Name="table1_Group1">
+              <GroupExpressions>
+                <GroupExpression>=Fields!ErrorNumber.Value</GroupExpression>
+              </GroupExpressions>
+            </Grouping>
+          </TableGroup>
+        </TableGroups>
+        <ZIndex>1</ZIndex>
+        <Details>
+          <TableRows>
+            <TableRow>
+              <TableCells>
+                <TableCell>
+                  <ReportItems>
+                    <Textbox Name="textbox3">
+                      <rd:DefaultName>textbox3</rd:DefaultName>
+                      <ZIndex>9</ZIndex>
+                      <Style>
+                        <PaddingLeft>2pt</PaddingLeft>
+                        <PaddingBottom>2pt</PaddingBottom>
+                        <PaddingRight>2pt</PaddingRight>
+                        <PaddingTop>2pt</PaddingTop>
+                      </Style>
+                      <CanGrow>true</CanGrow>
+                      <Value />
+                    </Textbox>
+                  </ReportItems>
+                </TableCell>
+                <TableCell>
+                  <ReportItems>
+                    <Textbox Name="textbox15">
+                      <ZIndex>8</ZIndex>
+                      <Style>
+                        <TextAlign>Left</TextAlign>
+                        <PaddingLeft>2pt</PaddingLeft>
+                        <PaddingBottom>2pt</PaddingBottom>
+                        <FontSize>8pt</FontSize>
+                        <Format>P1</Format>
+                        <PaddingRight>2pt</PaddingRight>
+                        <PaddingTop>2pt</PaddingTop>
+                      </Style>
+                      <CanGrow>true</CanGrow>
+                      <Value>=Fields!Column1.Value</Value>
+                    </Textbox>
+                  </ReportItems>
+                </TableCell>
+                <TableCell>
+                  <ReportItems>
+                    <Textbox Name="textbox16">
+                      <ZIndex>7</ZIndex>
+                      <Style>
+                        <TextAlign>Left</TextAlign>
+                        <PaddingLeft>2pt</PaddingLeft>
+                        <PaddingBottom>2pt</PaddingBottom>
+                        <FontSize>8pt</FontSize>
+                        <Format>N0</Format>
+                        <PaddingRight>2pt</PaddingRight>
+                        <PaddingTop>2pt</PaddingTop>
+                      </Style>
+                      <CanGrow>true</CanGrow>
+                      <Value>=Fields!Column2.Value</Value>
+                    </Textbox>
+                  </ReportItems>
+                </TableCell>
+                <TableCell>
+                  <ReportItems>
+                    <Textbox Name="textbox17">
+                      <ZIndex>6</ZIndex>
+                      <Style>
+                        <TextAlign>Left</TextAlign>
+                        <PaddingLeft>2pt</PaddingLeft>
+                        <PaddingBottom>2pt</PaddingBottom>
+                        <FontSize>8pt</FontSize>
+                        <Format>N0</Format>
+                        <PaddingRight>2pt</PaddingRight>
+                        <PaddingTop>2pt</PaddingTop>
+                      </Style>
+                      <CanGrow>true</CanGrow>
+                      <Value>=Fields!Column3.Value</Value>
+                    </Textbox>
+                  </ReportItems>
+                </TableCell>
+                <TableCell>
+                  <ReportItems>
+                    <Textbox Name="textbox18">
+                      <ZIndex>5</ZIndex>
+                      <Style>
+                        <TextAlign>Left</TextAlign>
+                        <PaddingLeft>2pt</PaddingLeft>
+                        <PaddingBottom>2pt</PaddingBottom>
+                        <FontSize>8pt</FontSize>
+                        <Format>N0</Format>
+                        <PaddingRight>2pt</PaddingRight>
+                        <PaddingTop>2pt</PaddingTop>
+                      </Style>
+                      <CanGrow>true</CanGrow>
+                      <Value>=Fields!Column4.Value</Value>
+                    </Textbox>
+                  </ReportItems>
+                </TableCell>
+                <TableCell>
+                  <ReportItems>
+                    <Textbox Name="textbox19">
+                      <ZIndex>4</ZIndex>
+                      <Style>
+                        <TextAlign>Left</TextAlign>
+                        <PaddingLeft>2pt</PaddingLeft>
+                        <PaddingBottom>2pt</PaddingBottom>
+                        <FontSize>8pt</FontSize>
+                        <Format>N0</Format>
+                        <PaddingRight>2pt</PaddingRight>
+                        <PaddingTop>2pt</PaddingTop>
+                      </Style>
+                      <CanGrow>true</CanGrow>
+                      <Value>=Fields!Column5.Value</Value>
+                    </Textbox>
+                  </ReportItems>
+                </TableCell>
+                <TableCell>
+                  <ReportItems>
+                    <Textbox Name="textbox20">
+                      <ZIndex>3</ZIndex>
+                      <Style>
+                        <TextAlign>Left</TextAlign>
+                        <PaddingLeft>2pt</PaddingLeft>
+                        <PaddingBottom>2pt</PaddingBottom>
+                        <FontSize>8pt</FontSize>
+                        <Format>N0</Format>
+                        <PaddingRight>2pt</PaddingRight>
+                        <PaddingTop>2pt</PaddingTop>
+                      </Style>
+                      <CanGrow>true</CanGrow>
+                      <Value>=Fields!Column6.Value</Value>
+                    </Textbox>
+                  </ReportItems>
+                </TableCell>
+                <TableCell>
+                  <ReportItems>
+                    <Textbox Name="textbox21">
+                      <ZIndex>2</ZIndex>
+                      <Style>
+                        <TextAlign>Left</TextAlign>
+                        <PaddingLeft>2pt</PaddingLeft>
+                        <PaddingBottom>2pt</PaddingBottom>
+                        <FontSize>8pt</FontSize>
+                        <Format>N0</Format>
+                        <PaddingRight>2pt</PaddingRight>
+                        <PaddingTop>2pt</PaddingTop>
+                      </Style>
+                      <CanGrow>true</CanGrow>
+                      <Value>=Fields!Column7.Value</Value>
+                    </Textbox>
+                  </ReportItems>
+                </TableCell>
+                <TableCell>
+                  <ReportItems>
+                    <Textbox Name="textbox22">
+                      <ZIndex>1</ZIndex>
+                      <Style>
+                        <TextAlign>Left</TextAlign>
+                        <PaddingLeft>2pt</PaddingLeft>
+                        <PaddingBottom>2pt</PaddingBottom>
+                        <FontSize>8pt</FontSize>
+                        <Format>N0</Format>
+                        <PaddingRight>2pt</PaddingRight>
+                        <PaddingTop>2pt</PaddingTop>
+                      </Style>
+                      <CanGrow>true</CanGrow>
+                      <Value>=Fields!Column8.Value</Value>
+                    </Textbox>
+                  </ReportItems>
+                </TableCell>
+                <TableCell>
+                  <ReportItems>
+                    <Textbox Name="textbox24">
+                      <Style>
+                        <TextAlign>Left</TextAlign>
+                        <PaddingLeft>2pt</PaddingLeft>
+                        <PaddingBottom>2pt</PaddingBottom>
+                        <FontSize>8pt</FontSize>
+                        <Format>P0</Format>
+                        <PaddingRight>2pt</PaddingRight>
+                        <PaddingTop>2pt</PaddingTop>
+                      </Style>
+                      <CanGrow>true</CanGrow>
+                      <Value>=Fields!Column9.Value</Value>
+                    </Textbox>
+                  </ReportItems>
+                </TableCell>
+              </TableCells>
+              <Height>0.1875in</Height>
+              <Visibility>
+                <ToggleItem>ErrorDescription</ToggleItem>
+              </Visibility>
+            </TableRow>
+          </TableRows>
+        </Details>
+        <TableColumns>
+          <TableColumn>
+            <Width>0.4375in</Width>
+          </TableColumn>
+          <TableColumn>
+            <Width>1.875in</Width>
+          </TableColumn>
+          <TableColumn>
+            <Width>1.75in</Width>
+          </TableColumn>
+          <TableColumn>
+            <Width>1.9375in</Width>
+          </TableColumn>
+          <TableColumn>
+            <Width>1.1875in</Width>
+          </TableColumn>
+          <TableColumn>
+            <Width>0.625in</Width>
+          </TableColumn>
+          <TableColumn>
+            <Width>0.625in</Width>
+          </TableColumn>
+          <TableColumn>
+            <Width>0.5625in</Width>
+          </TableColumn>
+          <TableColumn>
+            <Width>0.5in</Width>
+          </TableColumn>
+          <TableColumn>
+            <Width>0.4375in</Width>
+          </TableColumn>
+        </TableColumns>
+      </Table>
+      <Textbox Name="textbox1">
+        <rd:DefaultName>textbox1</rd:DefaultName>
+        <Style>
+          <PaddingLeft>2pt</PaddingLeft>
+          <PaddingBottom>2pt</PaddingBottom>
+          <FontFamily>Tahoma</FontFamily>
+          <FontWeight>700</FontWeight>
+          <FontSize>20pt</FontSize>
+          <Color>SteelBlue</Color>
+          <PaddingRight>2pt</PaddingRight>
+          <PaddingTop>2pt</PaddingTop>
+        </Style>
+        <CanGrow>true</CanGrow>
+        <Height>0.36in</Height>
+        <Value>="Dimension Health Check: " &amp; Parameters!Dimension.Label</Value>
+      </Textbox>
+    </ReportItems>
+    <Height>1.5625in</Height>
+  </Body>
+  <rd:ReportID>1eebbfc8-cdb6-42a2-a349-21e0ffc444d1</rd:ReportID>
+  <LeftMargin>0.5in</LeftMargin>
+  <DataSets>
+    <DataSet Name="DimensionHealthCheckResults">
+      <Query>
+        <rd:SuppressAutoUpdate>true</rd:SuppressAutoUpdate>
+        <rd:DesignerState><QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition"><CommandType>DMX</CommandType><Type>Query</Type><QuerySpecification xsi:type="DMXQuerySpecification"><Select><Items><Item><ID xsi:type="Column"><ColumnName>Dimension</ColumnName></ID><ItemCaption>Dimension</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>ErrorNumber</ColumnName></ID><ItemCaption>ErrorNumber</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>ErrorDescription</ColumnName></ID><ItemCaption>ErrorDescription</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>NumColumns</ColumnName></ID><ItemCaption>NumColumns</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>Column1Name</ColumnName></ID><ItemCaption>Column1Name</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>Column1</ColumnName></ID><ItemCaption>Column1</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>Column2Name</ColumnName></ID><ItemCaption>Column2Name</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>Column2</ColumnName></ID><ItemCaption>Column2</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>Column3Name</ColumnName></ID><ItemCaption>Column3Name</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>Column3</ColumnName></ID><ItemCaption>Column3</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>Column4Name</ColumnName></ID><ItemCaption>Column4Name</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>Column4</ColumnName></ID><ItemCaption>Column4</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>Column5Name</ColumnName></ID><ItemCaption>Column5Name</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>Column5</ColumnName></ID><ItemCaption>Column5</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>Column6Name</ColumnName></ID><ItemCaption>Column6Name</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>Column6</ColumnName></ID><ItemCaption>Column6</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>Column7Name</ColumnName></ID><ItemCaption>Column7Name</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>Column7</ColumnName></ID><ItemCaption>Column7</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>Column8Name</ColumnName></ID><ItemCaption>Column8Name</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>Column8</ColumnName></ID><ItemCaption>Column8</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>Column9Name</ColumnName></ID><ItemCaption>Column9Name</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>Column9</ColumnName></ID><ItemCaption>Column9</ItemCaption></Item></Items></Select><Data>&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;DataminingQueryBuilderState xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;SelectTablesControlState&gt;
+    &lt;Tables /&gt;
+  &lt;/SelectTablesControlState&gt;
+  &lt;IsSingletonQuery&gt;false&lt;/IsSingletonQuery&gt;
+  &lt;View&gt;Text&lt;/View&gt;
+  &lt;QueryText&gt;call ASSP.ListDimensionErrors(@Dimension)&lt;/QueryText&gt;
+  &lt;DatabaseId /&gt;
+  &lt;MiningStructureId /&gt;
+  &lt;MiningModelId /&gt;
+  &lt;ColumnMappings /&gt;
+  &lt;GridRows /&gt;
+&lt;/DataminingQueryBuilderState&gt;</Data></QuerySpecification><Query><Statement>call ASSP.ListDimensionErrors(@Dimension)</Statement><ParameterDefinitions><ParameterDefinition><Name>Dimension</Name><DefaultValues><DefaultValue>Geography</DefaultValue></DefaultValues><Caption>Dimension</Caption><ParameterValuesQuery><ParameterizedStatement><ReferencedParameters /></ParameterizedStatement></ParameterValuesQuery></ParameterDefinition></ParameterDefinitions></Query></QueryDefinition></rd:DesignerState>
+        <CommandText>call ASSP.ListDimensionErrors(@Dimension)</CommandText>
+        <QueryParameters>
+          <QueryParameter Name="Dimension">
+            <Value>=Parameters!Dimension.Value</Value>
+          </QueryParameter>
+        </QueryParameters>
+        <DataSourceName>Dimension Health Check SSAS</DataSourceName>
+      </Query>
+      <Fields>
+        <Field Name="Dimension">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Dimension</DataField>
+        </Field>
+        <Field Name="ErrorNumber">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>ErrorNumber</DataField>
+        </Field>
+        <Field Name="ErrorDescription">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>ErrorDescription</DataField>
+        </Field>
+        <Field Name="NumColumns">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>NumColumns</DataField>
+        </Field>
+        <Field Name="Column1Name">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Column1Name</DataField>
+        </Field>
+        <Field Name="Column1">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Column1</DataField>
+        </Field>
+        <Field Name="Column2Name">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Column2Name</DataField>
+        </Field>
+        <Field Name="Column2">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Column2</DataField>
+        </Field>
+        <Field Name="Column3Name">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Column3Name</DataField>
+        </Field>
+        <Field Name="Column3">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Column3</DataField>
+        </Field>
+        <Field Name="Column4Name">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Column4Name</DataField>
+        </Field>
+        <Field Name="Column4">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Column4</DataField>
+        </Field>
+        <Field Name="Column5Name">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Column5Name</DataField>
+        </Field>
+        <Field Name="Column5">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Column5</DataField>
+        </Field>
+        <Field Name="Column6Name">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Column6Name</DataField>
+        </Field>
+        <Field Name="Column6">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Column6</DataField>
+        </Field>
+        <Field Name="Column7Name">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Column7Name</DataField>
+        </Field>
+        <Field Name="Column7">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Column7</DataField>
+        </Field>
+        <Field Name="Column8Name">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Column8Name</DataField>
+        </Field>
+        <Field Name="Column8">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Column8</DataField>
+        </Field>
+        <Field Name="Column9Name">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Column9Name</DataField>
+        </Field>
+        <Field Name="Column9">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Column9</DataField>
+        </Field>
+      </Fields>
+    </DataSet>
+    <DataSet Name="DimensionsList">
+      <Query>
+        <rd:SuppressAutoUpdate>true</rd:SuppressAutoUpdate>
+        <rd:DesignerState><QueryDefinition xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns="http://schemas.microsoft.com/AnalysisServices/QueryDefinition"><CommandType>DMX</CommandType><Type>Query</Type><QuerySpecification xsi:type="DMXQuerySpecification"><Select><Items><Item><ID xsi:type="Column"><ColumnName>TABLE_CATALOG</ColumnName></ID><ItemCaption>TABLE_CATALOG</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>TABLE_SCHEMA</ColumnName></ID><ItemCaption>TABLE_SCHEMA</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>TABLE_NAME</ColumnName></ID><ItemCaption>TABLE_NAME</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>TABLE_TYPE</ColumnName></ID><ItemCaption>TABLE_TYPE</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>TABLE_GUID</ColumnName></ID><ItemCaption>TABLE_GUID</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>DESCRIPTION</ColumnName></ID><ItemCaption>DESCRIPTION</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>TABLE_PROPID</ColumnName></ID><ItemCaption>TABLE_PROPID</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>DATE_CREATED</ColumnName></ID><ItemCaption>DATE_CREATED</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>DATE_MODIFIED</ColumnName></ID><ItemCaption>DATE_MODIFIED</ItemCaption></Item><Item><ID xsi:type="Column"><ColumnName>TABLE_OLAP_TYPE</ColumnName></ID><ItemCaption>TABLE_OLAP_TYPE</ItemCaption></Item></Items></Select><Data>&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;DataminingQueryBuilderState xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"&gt;
+  &lt;SelectTablesControlState&gt;
+    &lt;Tables /&gt;
+  &lt;/SelectTablesControlState&gt;
+  &lt;IsSingletonQuery&gt;false&lt;/IsSingletonQuery&gt;
+  &lt;View&gt;Text&lt;/View&gt;
+  &lt;QueryText&gt;--this is the closest way to get the list of database dimensions
+--it returns extra rows, but then a filter on the SSRS dataset removes the extra rows
+CALL ASSP.Discover("DBSCHEMA_TABLES", "&amp;lt;TABLE_OLAP_TYPE&amp;gt;CUBE_DIMENSION&amp;lt;/TABLE_OLAP_TYPE&amp;gt;")&lt;/QueryText&gt;
+  &lt;DatabaseId /&gt;
+  &lt;MiningStructureId /&gt;
+  &lt;MiningModelId /&gt;
+  &lt;ColumnMappings /&gt;
+  &lt;GridRows /&gt;
+&lt;/DataminingQueryBuilderState&gt;</Data></QuerySpecification><Query><Statement>--this is the closest way to get the list of database dimensions
+--it returns extra rows, but then a filter on the SSRS dataset removes the extra rows
+CALL ASSP.Discover("DBSCHEMA_TABLES", "&lt;TABLE_OLAP_TYPE&gt;CUBE_DIMENSION&lt;/TABLE_OLAP_TYPE&gt;")</Statement><ParameterDefinitions /></Query></QueryDefinition></rd:DesignerState>
+        <CommandText>--this is the closest way to get the list of database dimensions
+--it returns extra rows, but then a filter on the SSRS dataset removes the extra rows
+CALL ASSP.Discover("DBSCHEMA_TABLES", "&lt;TABLE_OLAP_TYPE&gt;CUBE_DIMENSION&lt;/TABLE_OLAP_TYPE&gt;")</CommandText>
+        <DataSourceName>Dimension Health Check SSAS</DataSourceName>
+      </Query>
+      <Filters>
+        <Filter>
+          <Operator>Equal</Operator>
+          <FilterValues>
+            <FilterValue>=True</FilterValue>
+          </FilterValues>
+          <FilterExpression>=Fields!TABLE_NAME.Value.ToString().StartsWith("$")</FilterExpression>
+        </Filter>
+      </Filters>
+      <Fields>
+        <Field Name="TABLE_CATALOG">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>TABLE_CATALOG</DataField>
+        </Field>
+        <Field Name="TABLE_SCHEMA">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>TABLE_SCHEMA</DataField>
+        </Field>
+        <Field Name="TABLE_NAME">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>TABLE_NAME</DataField>
+        </Field>
+        <Field Name="TABLE_TYPE">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>TABLE_TYPE</DataField>
+        </Field>
+        <Field Name="TABLE_GUID">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>TABLE_GUID</DataField>
+        </Field>
+        <Field Name="DESCRIPTION">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>DESCRIPTION</DataField>
+        </Field>
+        <Field Name="TABLE_PROPID">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>TABLE_PROPID</DataField>
+        </Field>
+        <Field Name="DATE_CREATED">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>DATE_CREATED</DataField>
+        </Field>
+        <Field Name="DATE_MODIFIED">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>DATE_MODIFIED</DataField>
+        </Field>
+        <Field Name="TABLE_OLAP_TYPE">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>TABLE_OLAP_TYPE</DataField>
+        </Field>
+        <Field Name="CorrectedDimensionName">
+          <Value>=Fields!TABLE_NAME.Value.ToString().Substring(1)</Value>
+        </Field>
+      </Fields>
+    </DataSet>
+  </DataSets>
+  <Code />
+  <Width>9.9375in</Width>
+  <InteractiveHeight>11in</InteractiveHeight>
+  <Description>View a snapshot of Analysis Services memory usage</Description>
+  <Language>en-US</Language>
+  <PageFooter>
+    <ReportItems>
+      <Textbox Name="textbox4">
+        <Left>4.5in</Left>
+        <Top>0.1875in</Top>
+        <ZIndex>2</ZIndex>
+        <Width>2.0625in</Width>
+        <Style>
+          <TextAlign>Right</TextAlign>
+          <PaddingLeft>2pt</PaddingLeft>
+          <PaddingBottom>2pt</PaddingBottom>
+          <FontSize>8pt</FontSize>
+          <PaddingRight>2pt</PaddingRight>
+          <FontStyle>Italic</FontStyle>
+          <PaddingTop>2pt</PaddingTop>
+        </Style>
+        <CanGrow>true</CanGrow>
+        <Value>="As of " &amp; Globals!ExecutionTime</Value>
+      </Textbox>
+      <Textbox Name="textbox82">
+        <Left>7.875in</Left>
+        <Top>0.1875in</Top>
+        <ZIndex>1</ZIndex>
+        <Style>
+          <TextAlign>Right</TextAlign>
+          <PaddingLeft>2pt</PaddingLeft>
+          <PaddingBottom>2pt</PaddingBottom>
+          <FontSize>8pt</FontSize>
+          <PaddingRight>2pt</PaddingRight>
+          <FontStyle>Italic</FontStyle>
+          <PaddingTop>2pt</PaddingTop>
+        </Style>
+        <CanGrow>true</CanGrow>
+        <Value>="Page " &amp; Globals!PageNumber &amp; " of " &amp; Globals!TotalPages</Value>
+      </Textbox>
+      <Textbox Name="textbox72">
+        <Top>0.1875in</Top>
+        <rd:DefaultName>textbox72</rd:DefaultName>
+        <Width>3.5in</Width>
+        <Style>
+          <PaddingLeft>2pt</PaddingLeft>
+          <PaddingBottom>2pt</PaddingBottom>
+          <FontSize>8pt</FontSize>
+          <PaddingRight>2pt</PaddingRight>
+          <FontStyle>Italic</FontStyle>
+          <PaddingTop>2pt</PaddingTop>
+        </Style>
+        <CanGrow>true</CanGrow>
+        <Value>From http://www.codeplex.com/ASStoredProcedures</Value>
+      </Textbox>
+    </ReportItems>
+    <Height>0.375in</Height>
+    <PrintOnLastPage>true</PrintOnLastPage>
+    <PrintOnFirstPage>true</PrintOnFirstPage>
+  </PageFooter>
+  <TopMargin>0.5in</TopMargin>
+  <PageHeight>8.5in</PageHeight>
+</Report>

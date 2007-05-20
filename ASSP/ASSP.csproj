@@ -57,6 +57,7 @@
     <Compile Include="CellTimings.cs" />
     <Compile Include="ClusterNaming.cs" />
     <Compile Include="CubeInfo.cs" />
+    <Compile Include="DimensionHealthCheck.cs" />
     <Compile Include="EfficientToDate.cs" />
     <Compile Include="FindCurrentMember.cs" />
     <Compile Include="LinkMember.cs" />
@@ -75,6 +76,7 @@
     <None Include="MDX\AsymmetricSet Example MDX Queries.mdx" />
     <None Include="MDX\ClusterNaming Examples.dmx" />
     <None Include="MDX\CubeInfo Example MDX Queries.mdx" />
+    <None Include="MDX\Dimension Health Check Example Queries.mdx" />
     <None Include="MDX\EfficientToDate Example MDX Queries.mdx" />
     <None Include="MDX\FindCurrentMember Example MDX Query.mdx" />
     <None Include="MDX\FindCurrentMemberVerbose Example MDX Query.mdx" />
@@ -87,6 +89,7 @@
     <None Include="MDX\StringFilter Example MDX Queries.mdx" />
     <None Include="MDX\TimeToCalculate Example MDX Query.mdx" />
     <None Include="MDX\XmlaDiscover Example MDX.mdx" />
+    <None Include="Miscellaneous\DimensionHealthCheckSubscription.rss" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
