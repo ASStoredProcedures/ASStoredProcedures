@@ -58,7 +58,6 @@
     <Compile Include="ClusterNaming.cs" />
     <Compile Include="CubeInfo.cs" />
     <Compile Include="EfficientToDate.cs" />
-    <Compile Include="Excel.cs" />
     <Compile Include="FindCurrentMember.cs" />
     <Compile Include="LinkMember.cs" />
     <Compile Include="ListFunctions.cs" />
