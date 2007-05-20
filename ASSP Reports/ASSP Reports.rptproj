@@ -6,6 +6,10 @@
       <Name>Memory Usage Cube.rds</Name>
       <FullPath>Memory Usage Cube.rds</FullPath>
     </ProjectItem>
+    <ProjectItem>
+      <Name>Dimension Health Check SSAS.rds</Name>
+      <FullPath>Dimension Health Check SSAS.rds</FullPath>
+    </ProjectItem>
   </DataSources>
   <Reports>
     <ProjectItem>
@@ -15,6 +19,10 @@
     <ProjectItem>
       <Name>Memory Usage Trending.rdl</Name>
       <FullPath>Memory Usage Trending.rdl</FullPath>
+    </ProjectItem>
+    <ProjectItem>
+      <Name>Dimension Health Check.rdl</Name>
+      <FullPath>Dimension Health Check.rdl</FullPath>
     </ProjectItem>
   </Reports>
   <Configurations>
