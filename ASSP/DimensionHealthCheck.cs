@@ -122,7 +122,10 @@ namespace ASStoredProcs
                 try
                 {
                     bGotSQL = false;
-                    sql = GetQueryToValidateKeyUniqueness(da);
+                    if (da.Usage != AttributeUsage.Parent)
+                        sql = GetQueryToValidateKeyUniqueness(da);
+                    else
+                        sql = null;
                     if (sql != null)
                     {
                         bGotSQL = true;
@@ -153,7 +156,10 @@ namespace ASStoredProcs
                     try
                     {
                         bGotSQL = false;
-                        sql = GetQueryToValidateRelationship(r);
+                        if (da.Usage != AttributeUsage.Parent)
+                            sql = GetQueryToValidateRelationship(r);
+                        else
+                            sql = null;
                         if (sql != null)
                         {
                             bGotSQL = true;
