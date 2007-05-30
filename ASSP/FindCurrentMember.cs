@@ -43,6 +43,7 @@ namespace ASStoredProcs
             return output;
         }
 
+
         //FindCurrentMemberVerbose does the same thing as FindCurrentMember, but also displays the name
         //of the dimension and hierarchy and the caption of the currentmember
         public static string FindCurrentMemberVerbose()
@@ -55,6 +56,33 @@ namespace ASStoredProcs
                     output += "Dimension: " + d.Caption + " Hierarchy: " + h.Caption + " CurrentMember Caption: " + h.CurrentMember.Caption + " CurrentMember UniqueName: " + h.CurrentMember.UniqueName + " *** ";
                 }
             }
+            return output;
+        }
+
+        //FindCurrentMember returns a comma-delimited list of the uniquenames of the currentmember on every attribute hierarchy
+        //on every dimension
+        public static string FindCurrentTuple()
+        {
+            string output = "(";
+            Boolean addcomma = false;
+
+            foreach (Dimension d in Context.CurrentCube.Dimensions)
+            {
+                foreach (Hierarchy h in d.AttributeHierarchies)
+                {
+                    if (d.DimensionType == DimensionTypeEnum.Measure || h.CurrentMember.UniqueName != h.DefaultMember)
+                    {
+                        if (addcomma == false)
+                            addcomma = true;
+                        else
+                            output += ",";
+
+                        output += h.CurrentMember.UniqueName;
+                    }
+                }
+            }
+            output += ")";
+
             return output;
         }
     }
