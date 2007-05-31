@@ -44,3 +44,11 @@ CALL ASSP.ClearCache()
 // Clears the cache of the Adventure Works cube in the current Database
 // (if a cube with this name does not exist an exception will be thrown)
 CALL ASSP.ClearCache("Adventure Works")
+
+
+/*
+ DiscoverXmlMetadata performs a DISCOVER_XML_METADATA request and "flattens" the result
+*/
+
+CALL ASSP.discoverXmlMetaDataFull("\Server|ID,Version\Databases\Database|Name,State,LastProcessed\Roles\Role|Name\Members");
+CALL ASSP.discoverXmlMetaData("\Database|Name,State,LastProcessed\Dimensions\Dimension");
