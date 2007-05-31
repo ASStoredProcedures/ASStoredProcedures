@@ -1,5 +1,5 @@
 /*============================================================================
-  File:    Discover.cs
+  File:    XmlaDiscover.cs
 
   Summary: The primary purpose of this class is to execute XMLA discover
            commands and to return the results as a DataTable. It also has some
@@ -71,9 +71,56 @@ namespace ASStoredProcs
             return dt;
 
         }
+
+        [SafeToPrepare(true)]
+        public DataTable DiscoverXmlMetadataFull(string path)
+        {
+            return DiscoverXmlMetadataFull(path, "");
+        }
+
+        [SafeToPrepare(true)]
+        public DataTable DiscoverXmlMetadataFull(string path, string restrictions)
+        {
+            XmlaClient xmlac = createXmlaClientAndConnect();
+            string xmlaResult;
+            xmlac.Discover("DISCOVER_XML_METADATA", restrictions, "", out xmlaResult, false, false, false);
+            XmlaDiscoverParser dp = new XmlaDiscoverParser();
+            XmlDocument doc = new XmlDocument();
+            doc.LoadXml(xmlaResult);
+            return dp.Parse(doc, path, Context.ExecuteForPrepare);
+        }
+
+        [SafeToPrepare(true)]
+        public DataTable DiscoverXmlMetadata(string path)
+        {
+            return DiscoverXmlMetadata(path, "");
+        }
+
+        [SafeToPrepare(true)]
+        public DataTable DiscoverXmlMetadata(string path, string restrictions)
+        {
+            if (restrictions.Contains("DatabaseID"))
+            {
+                throw new ArgumentException("You cannot pass a DatabaseID to the DiscoverXmlMetadata function, use the DiscoverMetadataFull function instead.");
+            }
+            restrictions = "<DatabaseID>" + GetDatabaseIDFromName(Context.CurrentDatabaseName) + "</DatabaseID>";
+
+            return DiscoverXmlMetadataFull(path, restrictions);
+        }
+
 #endregion
 
 #region Private Helper Functions
+
+        private string GetDatabaseIDFromName(string databaseName)
+        {
+            //TODO
+            DataTable dt = DiscoverXmlMetadataFull(@"\Server\Databases\Database","<ObjectExpansion>ExpandObject</ObjectExpansion>");
+            DataRow[] dr = dt.Select("Name='" + Context.CurrentDatabaseName + "'");
+            string databaseID = (string)dr[0].ItemArray[dt.Columns.IndexOf("ID")];
+            return databaseID;
+        }
+
         private XmlaClient createXmlaClientAndConnect()
         {
             XmlaClient client;
@@ -329,7 +376,9 @@ namespace ASStoredProcs
         }
 
 #endregion
-        
+
+
+
     } // MetaDataQueries class
 
 }
