@@ -1,7 +1,25 @@
 --Returns the uniquename of the currentmember on every attribute hierarchy of every dimension
 --in a comma-delimited list
-WITH MEMBER MEASURES.TEST AS ASSP.FindCurrentMember()
-SELECT MEASURES.TEST ON 0,
-[Date].[Day of Week].MEMBERS
-ON 1
-from [Adventure Works]
+WITH
+  MEMBER MEASURES.TEST AS ASSP.FindCurrentMember()
+SELECT 
+  MEASURES.TEST ON 0,
+  [Date].[Day of Week].MEMBERS ON 1
+FROM [Adventure Works];
+
+
+-- FindCurrentTuple(). This does pretty much the same as the other functions in the 
+-- class except it generates a tuple in the form of a string and it ignores a 
+-- hierarchy when the currentmember is the same as the default member, making the 
+-- output much more readable. 
+-- LIMITATIONS: it doesn’t work with sets in the WHERE clause, although it could be
+--              modified to do so; it won’t work with subselects or calculated 
+--              members defined outside the MDX Script
+WITH 
+  CELL CALCULATION [test] FOR '(Measures.AllMembers)' AS  ASSP.FindCurrentTuple() 
+SELECT 
+  [Measures].[Internet Sales Amount] ON COLUMNS ,
+  [Date].[Calendar Year].[Calendar Year].MEMBERS ON ROWS
+FROM
+  [Adventure Works]
+WHERE([Product].[Category].&[1]);
