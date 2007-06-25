@@ -1342,7 +1342,8 @@ namespace ASStoredProcs
                 ASXmlDescriptorFileInfo info = ProcessXmlFile(new System.IO.FileInfo(file));
                 if (info != null)
                 {
-                    dict.Add(info.DirectoryName, info);
+                    if (!dict.ContainsKey(info.DirectoryName))
+                        dict.Add(info.DirectoryName, info);
                 }
             }
             return dict;
