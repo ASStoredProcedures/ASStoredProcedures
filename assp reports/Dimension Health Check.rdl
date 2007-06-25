@@ -728,7 +728,6 @@ CALL ASSP.Discover("DBSCHEMA_TABLES", "&lt;TABLE_OLAP_TYPE&gt;CUBE_DIMENSION&lt;
   <Code />
   <Width>9.9375in</Width>
   <InteractiveHeight>11in</InteractiveHeight>
-  <Description>View a snapshot of Analysis Services memory usage</Description>
   <Language>en-US</Language>
   <PageFooter>
     <ReportItems>
