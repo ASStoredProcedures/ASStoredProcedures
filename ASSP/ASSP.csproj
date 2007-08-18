@@ -69,6 +69,7 @@
     <Compile Include="SetOperations.cs" />
     <Compile Include="StringFilters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StrToSet.cs" />
     <Compile Include="WritebackWithAssignments.cs" />
     <Compile Include="XmlaDiscover.cs" />
     <Compile Include="XmlaDiscoverParser.cs">
