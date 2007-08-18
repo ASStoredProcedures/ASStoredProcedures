@@ -91,6 +91,7 @@
     <None Include="MDX\Partition Example Queries.mdx" />
     <None Include="MDX\SetOperations Example.mdx" />
     <None Include="MDX\StringFilter Example MDX Queries.mdx" />
+    <None Include="MDX\StrToSet Example MDX.mdx" />
     <None Include="MDX\TimeToCalculate Example MDX Query.mdx" />
     <None Include="MDX\XmlaDiscover Example MDX.mdx" />
     <None Include="Miscellaneous\DimensionHealthCheckSubscription.rss" />
