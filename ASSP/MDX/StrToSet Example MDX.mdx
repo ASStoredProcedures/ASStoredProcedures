@@ -1,0 +1,25 @@
+--the following two queries return the same thing
+select {} on 0,
+StrToSet("{ [Product].[Product].&[1],[Product].[Product].&[2] }") on 1
+from [Adventure Works]
+
+GO
+
+select {} on 0,
+ASSP.KeysStrToSet("[Product].[Product]", "1,2") on 1
+from [Adventure Works]
+
+
+GO
+
+
+--the following two queries return the same thing
+select {} on 0,
+StrToSet("{ [Geography].[City].&[Austin]&[TX],[Geography].[City].&[Baltimore]&[MD] }") on 1
+from [Adventure Works]
+
+GO
+
+select {} on 0,
+ASSP.CompositeKeysStrToSet("[Geography].[City]", "&[Austin]&[TX],&[Baltimore]&[MD]") on 1
+from [Adventure Works]
