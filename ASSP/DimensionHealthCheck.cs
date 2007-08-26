@@ -468,6 +468,12 @@ namespace ASStoredProcs
                     }
                 }
             }
+            if (baseTable == null)
+            {
+                //there are joins to and from the base table, so guess at the base table based on the child parameter to this function
+                ColumnBinding col = GetColumnBindingForDataItem(child[0]);
+                baseTable = dsv.Schema.Tables[col.TableID];
+            }
 
             //by now, all tables needed for joins will be in the dictionary
             select.Append("\r\nfrom ").AppendLine(GetFromClauseForTable(baseTable));
@@ -509,6 +515,7 @@ namespace ASStoredProcs
 
         private static string TraverseParentRelationshipsAndGetFromClause(Dictionary<DataTable, JoinedTable> tables, DataTable t)
         {
+            tables[t].AddedToQuery = true;
             StringBuilder joins = new StringBuilder();
             foreach (DataRelation r in t.ParentRelations)
             {
@@ -524,7 +531,6 @@ namespace ASStoredProcs
                     joins.Append(TraverseParentRelationshipsAndGetFromClause(tables, r.ParentTable));
                 }
             }
-            tables[t].AddedToQuery = true;
             return joins.ToString();
         }
 
