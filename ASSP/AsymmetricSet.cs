@@ -62,7 +62,9 @@ namespace ASStoredProcs
         {
             return buildAsymmetricSet(new Member[]{member1,member2});
         }
+        #endregion
 
+        #region "Public Interface - allows a tuple to be passed in"
         public static Set AsymmetricSet(Tuple t)
         {
             Member[] mbrs = new Member[t.Members.Count];
@@ -74,8 +76,68 @@ namespace ASStoredProcs
 
         }
         #endregion
+        
+
+        #region "Public Interface - allows between 2 and 8 sets to be passed in"
+        public static Set AsymmetricSet(Set set1, Set set2, Set set3, Set set4, Set set5, Set set6, Set set7, Set set8)
+        {
+            return buildAsymmetricSet(new Set[] { set1, set2, set3, set4, set5, set6, set7, set8 });
+        }
+
+        public static Set AsymmetricSet(Set set1, Set set2, Set set3, Set set4, Set set5, Set set6, Set set7)
+        {
+            return buildAsymmetricSet(new Set[] { set1, set2, set3, set4, set5, set6, set7});
+        }
+
+        public static Set AsymmetricSet(Set set1, Set set2, Set set3, Set set4, Set set5, Set set6)
+        {
+            return buildAsymmetricSet(new Set[] { set1, set2, set3, set4, set5, set6 });
+        }
+
+        public static Set AsymmetricSet(Set set1, Set set2, Set set3, Set set4, Set set5)
+        {
+            return buildAsymmetricSet(new Set[] { set1, set2, set3, set4, set5});
+        }
+
+        public static Set AsymmetricSet(Set set1, Set set2, Set set3, Set set4)
+        {
+            return buildAsymmetricSet(new Set[] { set1, set2, set3, set4 });
+        }
+
+        public static Set AsymmetricSet(Set set1, Set set2, Set set3)
+        {
+            return buildAsymmetricSet(new Set[] { set1, set2, set3 });
+        }
+
+        public static Set AsymmetricSet(Set set1, Set set2)
+        {
+            return buildAsymmetricSet(new Set[] { set1, set2});                        
+        }
+
+        #endregion
 
         #region "Implementation"
+
+        // Sets are simply converted to a list of members and the buildAsymetricSet function works
+        // it all out. The function is currently limited to sets made up of tuples comprising of a
+        // single member. I think it should be possible to build an Asymmetric set 
+        private static Set buildAsymmetricSet(params Set[] setList)
+        {
+            List<Member> mbrlist = new List<Member>();
+            foreach (Set s in setList)
+            {
+                foreach (Tuple t in s)
+                {
+                    if (t.Members.Count != 1)
+                    {
+                        throw new ArgumentException("Sets passed to the AsymmetricSet function must be composed of tuples with only one member.");
+                    }
+                    mbrlist.Add(t.Members[0]);
+                }
+            }
+            return buildAsymmetricSet(mbrlist.ToArray());
+        }
+
         private static Set buildAsymmetricSet(params Member[] memberList)
         {
             Context.TraceEvent(100, 0, "AsymmetricSet: Starting");
