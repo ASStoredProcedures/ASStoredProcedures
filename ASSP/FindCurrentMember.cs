@@ -28,16 +28,22 @@ namespace ASStoredProcs
         //for example, when you're trying to find out how selecting a member on one attribute hierarchy
         //automatically affects the currentmember on other attribute hierarchies on the same dimension
 
+        const string DEFAULT_SEPARATOR = "\n";
+
         //FindCurrentMember returns a comma-delimited list of the uniquenames of the currentmember on every attribute hierarchy
         //on every dimension
         public static string FindCurrentMember()
+        {
+            return FindCurrentMember(DEFAULT_SEPARATOR);
+        }
+        public static string FindCurrentMember(string separator)
         {
             string output = "";
             foreach (Dimension d in Context.CurrentCube.Dimensions)
             {
                 foreach (Hierarchy h in d.AttributeHierarchies)
                 {
-                    output += h.CurrentMember.UniqueName + ", ";
+                    output += h.CurrentMember.UniqueName + separator;
                 }
             }
             return output;
