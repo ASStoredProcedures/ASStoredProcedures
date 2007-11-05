@@ -41,7 +41,7 @@ namespace ASStoredProcs
             int dimCount;
             int i;
             DataRow[] sameDimRows;
-            DataRow currentRow;
+            
             string overlapText;
             bool notFirstDim = false;
             
@@ -75,11 +75,10 @@ namespace ASStoredProcs
                     dt.Merge(dtTemp);
                 }
                 //work out if partitions overlap
-                for (i = dimCount - 1; i < dt.Rows.Count; i++)
+                foreach(DataRow currentRow in dt.Rows)
                 {
                     Context.CheckCancelled();
 
-                    currentRow = dt.Rows[i];
                     if (currentRow["ATTRIBUTE_INDEXED"].ToString() == "true")
                     {
                         overlapText = "";
