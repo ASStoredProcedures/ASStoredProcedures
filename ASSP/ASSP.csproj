@@ -66,6 +66,7 @@
     <Compile Include="Multiply.cs" />
     <Compile Include="Parallel.cs" />
     <Compile Include="Partition.cs" />
+    <Compile Include="PartitionHealthCheck.cs" />
     <Compile Include="SetOperations.cs" />
     <Compile Include="StringFilters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
