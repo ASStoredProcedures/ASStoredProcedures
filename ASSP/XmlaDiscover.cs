@@ -377,9 +377,22 @@ namespace ASStoredProcs
 
 #endregion
 
+        [SafeToPrepare(true)]
+        public DataTable DiscoverView(String discoverRowset, String WhereClause, String SortBy)
+        {
+            return DiscoverView(discoverRowset, String.Empty, String.Empty, WhereClause,SortBy);
+        }
 
+        public DataTable DiscoverView(String discoverRowset, String restrictions, String properties, String WhereClause, String SortBy)
+        {
+            DataTable dt = Discover(discoverRowset,restrictions,properties);
+            DataView dv = dt.DefaultView;
+            dv.RowFilter = WhereClause;
+            dv.Sort = SortBy;
+            return dv.ToTable();
+        }
 
-    } // MetaDataQueries class
+    } // XmlaDiscover class
 
 }
 
