@@ -377,13 +377,28 @@ namespace ASStoredProcs
 
 #endregion
 
+
+#region DMV functions
         [SafeToPrepare(true)]
-        public DataTable DiscoverView(String discoverRowset, String WhereClause, String SortBy)
+        public DataTable DMV(String discoverRowset)
         {
-            return DiscoverView(discoverRowset, String.Empty, String.Empty, WhereClause,SortBy);
+            return DMV(discoverRowset, String.Empty, String.Empty, string.Empty, string.Empty);
         }
 
-        public DataTable DiscoverView(String discoverRowset, String restrictions, String properties, String WhereClause, String SortBy)
+        [SafeToPrepare(true)]
+        public DataTable DMV(String discoverRowset, String WhereClause)
+        {
+            return DMV(discoverRowset, String.Empty, String.Empty, WhereClause, string.Empty);
+        }
+
+        [SafeToPrepare(true)]
+        public DataTable DMV(String discoverRowset, String WhereClause, String SortBy)
+        {
+            return DMV(discoverRowset, String.Empty, String.Empty, WhereClause,SortBy);
+        }
+
+        [SafeToPrepare(true)]
+        public DataTable DMV(String discoverRowset, String restrictions, String properties, String WhereClause, String SortBy)
         {
             DataTable dt = Discover(discoverRowset,restrictions,properties);
             DataView dv = dt.DefaultView;
@@ -391,7 +406,7 @@ namespace ASStoredProcs
             dv.Sort = SortBy;
             return dv.ToTable();
         }
-
+#endregion
     } // XmlaDiscover class
 
 }
