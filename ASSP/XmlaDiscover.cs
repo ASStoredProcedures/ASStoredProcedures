@@ -22,6 +22,7 @@ using Microsoft.AnalysisServices.Xmla;
 using Microsoft.AnalysisServices.AdomdServer;
 using Microsoft.AnalysisServices;
 using System.Xml;
+using System.Text;
 
 namespace ASStoredProcs
 {
@@ -382,7 +383,15 @@ namespace ASStoredProcs
         [SafeToPrepare(true)]
         public DataTable DMV(String discoverRowset)
         {
-            return DMV(discoverRowset, String.Empty, String.Empty, string.Empty, string.Empty);
+            if (discoverRowset.Trim().StartsWith("SELECT ", StringComparison.InvariantCultureIgnoreCase))
+            {
+                SelectParser sp = new SelectParser(discoverRowset);
+                return DMV(sp.FromClause, string.Empty, string.Empty, sp.WhereClause, sp.OrderByClause,sp.Distinct, sp.Columns );
+            }
+            else
+            {
+                return DMV(discoverRowset, String.Empty, String.Empty, string.Empty, string.Empty);
+            }
         }
 
         [SafeToPrepare(true)]
@@ -400,14 +409,138 @@ namespace ASStoredProcs
         [SafeToPrepare(true)]
         public DataTable DMV(String discoverRowset, String restrictions, String properties, String WhereClause, String SortBy)
         {
+            return DMV(discoverRowset, String.Empty, String.Empty, WhereClause, SortBy, false, new string[] { });
+        }
+
+        [SafeToPrepare(true)]
+        public DataTable DMV(String discoverRowset, String restrictions, String properties, String WhereClause, String SortBy, bool distinct, string[] columns)
+        {
             DataTable dt = Discover(discoverRowset,restrictions,properties);
             DataView dv = dt.DefaultView;
             dv.RowFilter = WhereClause;
             dv.Sort = SortBy;
-            return dv.ToTable();
+            if (columns.Length == 0)
+            {
+                return dv.ToTable();
+            }
+            else
+            {
+                return dv.ToTable(distinct, columns);
+            }
         }
 #endregion
     } // XmlaDiscover class
 
-}
 
+
+public class SelectParser
+{
+    private string mStatement = "";
+    private string mColumns = "";
+    private string mFrom = "";
+    private string mWhere = "";
+    private string mOrder = "";
+    private string[] mCols;
+    private bool mDistinct = false;
+
+    public SelectParser(string selectStatement)
+    {
+        mStatement = NormaliseWhitespace(selectStatement);
+        if (mStatement.StartsWith("SELECT"))
+        {
+
+            string mTmp = mStatement; //.Substring(7);
+            string[] parts = mTmp.Split(new string[4] { "SELECT", "FROM", "WHERE", "ORDER BY" }, StringSplitOptions.None);
+            mColumns = parts[1].Trim();
+            parseColumns();
+            if (parts.Length >= 3)
+            { mFrom = parts[2].Trim(); }
+            if (parts.Length >= 4)
+            { mWhere = parts[3].Trim(); }
+            if (parts.Length >= 5)
+            { mOrder = parts[4].Trim(); }
+        }
+    }
+
+    public string NormaliseWhitespace(string statement)
+    {
+        // replace tabs with spaces
+        // replace cr-lf with spaces
+        // replace double spaces with single spaces
+        StringBuilder sb = new StringBuilder(statement);
+        sb = sb.Replace("\t"," ");
+        sb = sb.Replace("\n"," ");
+        sb = sb.Replace("\r", " ");
+        while (sb.ToString().Contains("  "))
+        {
+            sb = sb.Replace("  "," ");
+        }
+        return sb.ToString().Trim();
+    }
+
+    private void parseColumns()
+    {
+        string mTmp = mColumns.Trim();
+        if (mTmp.StartsWith("distinct ", StringComparison.InvariantCultureIgnoreCase))
+        {
+            mDistinct = true;
+            // remove the distinct keyword from the column list
+            mTmp = mTmp.Substring(8);
+        }
+        
+        mCols = mTmp.Split(",".ToCharArray());
+        string col;
+        for (int i = 0; i < mCols.Length;i++ )
+        {
+            col = mCols[i];
+            col = col.Trim();
+            if (col.StartsWith("[") && col.EndsWith("]"))
+            {
+                col = col.Substring(1, col.Length - 2);
+            }
+            mCols[i] = col;
+        }
+    }
+
+    public bool Distinct
+    {
+        get { return mDistinct; }
+    }
+
+    public string[] Columns
+    {
+    get
+        {
+            return mCols;
+        }
+    }
+
+    public string WhereClause
+    {
+        get {
+            return mWhere;
+        }
+    }
+
+    public string OrderByClause
+    {
+        get {
+            return mOrder;
+        }
+    }
+
+    public string FromClause
+    {
+        get {
+            if (mFrom.StartsWith(@"$system.", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return mFrom.Substring(8);
+            }
+            else
+            {
+                return mFrom;
+            }
+        }
+    }
+}
+}
