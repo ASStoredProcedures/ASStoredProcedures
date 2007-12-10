@@ -1,9 +1,13 @@
-call ASSP.DMV("
+// The DMV function supports all the MDX comment types
+CALL ASSP.DMV("
 SELECT CUBE_NAME , BASE_CUBE_NAME   
+// the DMV function suppports all the MDX comment types
 FROM $system.MDSCHEMA_CUBES 
-WHERE CUBE_SOURCE = 1"); --— Just cubes, =2 - dimensions.
+/* the $system schema is optional */ WHERE --blah
+CUBE_SOURCE = 1 -- Just cubes, =2 - dimensions.
+");
 
-call ASSP.DMV("
+CALL ASSP.DMV("
 SELECT DIMENSION_ORDINAL
  , DIMENSION_NAME
  , DIMENSION_CARDINALITY
@@ -12,40 +16,49 @@ SELECT DIMENSION_ORDINAL
  WHERE CUBE_NAME = 'Direct Sales'
 ORDER BY DIMENSION_ORDINAL");
 
-call assp.DMV("SELECT CUBE_NAME, MEASUREGROUP_NAME
+CALL ASSP.DMV("SELECT CUBE_NAME, MEASUREGROUP_NAME
   FROM $SYSTEM.MDSCHEMA_MEASUREGROUPS
  WHERE CUBE_NAME = 'Direct Sales'");
 
-call assp.DMV("SELECT CUBE_NAME, MEASUREGROUP_NAME, DIMENSION_UNIQUE_NAME
+CALL ASSP.DMV("SELECT CUBE_NAME, MEASUREGROUP_NAME, DIMENSION_UNIQUE_NAME
  , DIMENSION_IS_VISIBLE
  , DIMENSION_GRANULARITY
   FROM $SYSTEM.MDSCHEMA_MEASUREGROUP_DIMENSIONS
  WHERE CUBE_NAME = 'Direct Sales'
    AND MEASUREGROUP_NAME = 'Internet Customers'");
 
-call assp.DMV("SELECT CUBE_NAME, MEASUREGROUP_NAME, KPI_NAME
+CALL ASSP.DMV("SELECT CUBE_NAME, MEASUREGROUP_NAME, KPI_NAME
  , KPI_DESCRIPTION
  , KPI_VALUE
 , KPI_GOAL , KPI_STATUS , KPI_TREND 
   FROM $SYSTEM.MDSCHEMA_KPIS
  WHERE CUBE_NAME = 'Direct Sales'");
  
- call assp.DMV("SELECT [DIMENSION_UNIQUE_NAME]
+CALL ASSP.DMV("SELECT [DIMENSION_UNIQUE_NAME]
  , HIERARCHY_NAME
  , DEFAULT_MEMBER
   FROM $SYSTEM.MDSCHEMA_HIERARCHIES
  WHERE [DIMENSION_UNIQUE_NAME] = '[Account]'
    AND CUBE_NAME = 'Adventure Works'
-ORDER BY HIERARCHY_ORDINAL"); -- could not find $Account cube
+ORDER BY HIERARCHY_ORDINAL"); 
 
- call assp.DMV("SELECT DISTINCT DIMENSION_UNIQUE_NAME
+-- Test using ORDER BY, without WHERE
+CALL ASSP.DMV("SELECT [DIMENSION_UNIQUE_NAME]
+ , HIERARCHY_NAME
+ , DEFAULT_MEMBER
+  FROM $SYSTEM.MDSCHEMA_HIERARCHIES
+ ORDER BY HIERARCHY_ORDINAL"); -- could not find $Account cube
+
+-- The WHERE clause supports the LIKE operator
+CALL ASSP.DMV("SELECT DISTINCT DIMENSION_UNIQUE_NAME
    FROM $SYSTEM.MDSCHEMA_HIERARCHIES
- WHERE [DIMENSION_UNIQUE_NAME] = '[Account]'
+ WHERE DIMENSION_UNIQUE_NAME = '[Account]'
    AND CUBE_NAME Like '%venture%'
 ORDER BY HIERARCHY_ORDINAL"); 
 
-
-call ASSP.DMV("
+-- This example combines the LIKE operator with multiple columns in the 
+-- ORDER BY clause.
+CALL ASSP.DMV("
 SELECT DIMENSION_ORDINAL
  , [DIMENSION_NAME]
  , DIMENSION_CARDINALITY
@@ -53,3 +66,57 @@ SELECT DIMENSION_ORDINAL
   FROM $SYSTEM.MDSCHEMA_DIMENSIONS
  WHERE CUBE_NAME LIKE '%Sales'
 ORDER BY DIMENSION_NAME, DIMENSION_ORDINAL"); -- DIMENSION_ORDINAL coming out as a string
+
+// used the following to get a list of partition names
+//CALL ASSP.DiscoverXmlMetaData("Database\Cubes\Cube\MeasureGroups\MeasureGroup\Partitions\Partition");
+
+-- This call demonstrates how ASSP.DMV can map WHERE filters to the restrictions of the XML/A discover
+-- call in order to support querying rowsets that have required restrictions.
+CALL ASSP.DMV("
+SELECT *
+FROM $SYSTEM.DISCOVER_PARTITION_DIMENSION_STAT
+WHERE DATABASE_NAME = 'Adventure Works DW'
+  AND CUBE_NAME = 'Adventure Works'
+  AND MEASURE_GROUP_NAME = 'Internet Sales'
+  AND PARTITION_NAME = 'Internet_Sales_2003'
+ORDER BY DIMENSION_NAME, ATTRIBUTE_COUNT_MAX desc
+");
+
+-- this is the same as the call above, just with an explicit restrictions clause
+-- rather than using an implied one from the WHERE conditions.
+CALL ASSP.DMV("
+SELECT *
+FROM $SYSTEM.DISCOVER_PARTITION_DIMENSION_STAT
+ORDER BY DIMENSION_NAME, ATTRIBUTE_COUNT_MAX desc"
+,"<DATABASE_NAME>Adventure Works DW</DATABASE_NAME><CUBE_NAME>Adventure Works</CUBE_NAME><MEASURE_GROUP_NAME>Internet Sales</MEASURE_GROUP_NAME><PARTITION_NAME>Internet_Sales_2003</PARTITION_NAME>");
+
+-- This is how the call would look using the Discover function 
+-- (ie. without the ORDER BY)
+CALL ASSP.Discover("DISCOVER_PARTITION_DIMENSION_STAT"
+,"<DATABASE_NAME>Adventure Works DW</DATABASE_NAME><CUBE_NAME>Adventure Works</CUBE_NAME><MEASURE_GROUP_NAME>Internet Sales</MEASURE_GROUP_NAME><PARTITION_NAME>Internet_Sales_2003</PARTITION_NAME>");
+
+
+-- The following will FAIL - as not all the restrictions required by SSAS have been supplied
+-- adding the columns reported by the error message into the where clause will satisfy the 
+-- restrictions. 
+CALL ASSP.DMV("
+SELECT *
+FROM $SYSTEM.DISCOVER_PARTITION_DIMENSION_STAT
+WHERE DATABASE_NAME = 'Adventure Works DW'
+  AND CUBE_NAME = 'Adventure Works'
+");
+
+
+-- The DMV function does not support accessing some of the schema tables like 
+-- the ones returned from DBSCHEMA_TABLES, but then you can already do that 
+-- from MDX (see below)
+CALL ASSP.DMV("
+SELECT *
+FROM $SYSTEM.DBSCHEMA_TABLES
+");
+
+SELECT * 
+FROM [$Account].[$Account];
+
+SELECT * 
+FROM [Sales Summary].[Internet Orders];
