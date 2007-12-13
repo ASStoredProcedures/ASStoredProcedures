@@ -115,7 +115,16 @@ namespace ASStoredProcs
              + " )" + sNewLine
              + " ,Except(Descendants(" + sMemberUniqueName + ".Hierarchy.CurrentMember," + sMemberUniqueName + ".Level), MYRANGE).Count=0" + sNewLine
              + "  and Count(Except(Descendants(" + sMemberUniqueName + ".Hierarchy.CurrentMember.Parent," + sMemberUniqueName + ".Level), MYRANGE))<>0" + sNewLine
-             + ")";
+             + ")" + sNewLine;
+            if (iMinLevelDepth == 0)
+            {
+                sExpression += "+" + sNewLine
+                 + "IIf(" + sNewLine
+                 + " " + sMemberUniqueName + ".NextMember is Null" + sNewLine
+                 + " ," + sMemberUniqueName + ".Hierarchy.Levels(0).Members" + sNewLine
+                 + " ,{}" + sNewLine
+                 + ")";
+            }
             Expression oExpression = new Expression(sExpression);
             return oExpression.CalculateMdxObject(new TupleBuilder(oCurrentMember).ToTuple()).ToSet();
         }
@@ -133,6 +142,13 @@ namespace ASStoredProcs
              + " )" + sNewLine
              + " ,Except(Descendants(" + sMemberUniqueName + ".Hierarchy.CurrentMember," + sMemberUniqueName + ".Level), MYRANGE).Count=0" + sNewLine
              + "  and Count(Except(Descendants(" + sMemberUniqueName + ".Hierarchy.CurrentMember.Parent," + sMemberUniqueName + ".Level), MYRANGE))<>0" + sNewLine
+             + ")" + sNewLine
+             + "+" + sNewLine
+             + "IIf(" + sNewLine
+             + " " + sMemberUniqueName + ".NextMember is Null" + sNewLine
+             + " and " + sMemberUniqueName + ".Hierarchy.Levels(\"" + sMinLevelName + "\").Ordinal = 0" + sNewLine
+             + " ," + sMemberUniqueName + ".Hierarchy.Levels(0).Members" + sNewLine
+             + " ,{}" + sNewLine
              + ")";
             Expression oExpression = new Expression(sExpression);
             return oExpression.CalculateMdxObject(new TupleBuilder(oCurrentMember).ToTuple()).ToSet();
