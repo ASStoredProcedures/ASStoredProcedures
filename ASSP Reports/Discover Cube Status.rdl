@@ -793,7 +793,7 @@
     <ReportItems>
       <Textbox Name="textbox18">
         <rd:DefaultName>textbox18</rd:DefaultName>
-        <Width>18.25cm</Width>
+        <Width>19.25cm</Width>
         <Style>
           <PaddingLeft>2pt</PaddingLeft>
           <PaddingBottom>2pt</PaddingBottom>
@@ -946,7 +946,7 @@
     <DataSet Name="dsDatabases">
       <Query>
         <rd:UseGenericDesigner>true</rd:UseGenericDesigner>
-        <CommandText>CALL ASSP.DiscoverXmlMetadataFull("\Databases\Database")</CommandText>
+        <CommandText>CALL ASSP.DiscoverXmlMetadataFull("\Databases\Database","&lt;ObjectExpansion&gt;ExpandObject&lt;/ObjectExpansion&gt;")</CommandText>
         <DataSourceName>Discover Reports</DataSourceName>
       </Query>
       <Fields>
@@ -966,10 +966,6 @@
           <rd:TypeName>System.String</rd:TypeName>
           <DataField>LastSchemaUpdate</DataField>
         </Field>
-        <Field Name="DESCRIPTION">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>Description</DataField>
-        </Field>
         <Field Name="LastProcessed">
           <rd:TypeName>System.String</rd:TypeName>
           <DataField>LastProcessed</DataField>
@@ -981,34 +977,6 @@
         <Field Name="LastUpdate">
           <rd:TypeName>System.String</rd:TypeName>
           <DataField>LastUpdate</DataField>
-        </Field>
-        <Field Name="AggregationPrefix">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>AggregationPrefix</DataField>
-        </Field>
-        <Field Name="Language">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>Language</DataField>
-        </Field>
-        <Field Name="Collation">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>Collation</DataField>
-        </Field>
-        <Field Name="Visible">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>Visible</DataField>
-        </Field>
-        <Field Name="MasterDataSourceID">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>MasterDataSourceID</DataField>
-        </Field>
-        <Field Name="ProcessingPriority">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>ProcessingPriority</DataField>
-        </Field>
-        <Field Name="EstimatedSize">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>EstimatedSize</DataField>
         </Field>
         <Field Name="ServerID">
           <rd:TypeName>System.String</rd:TypeName>
