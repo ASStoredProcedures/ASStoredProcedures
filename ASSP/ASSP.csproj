@@ -67,6 +67,16 @@
     <Compile Include="Parallel.cs" />
     <Compile Include="Partition.cs" />
     <Compile Include="PartitionHealthCheck.cs" />
+    <Compile Include="DMVParser\SelectParser.cs" />
+    <Compile Include="DMVParser\Tokenizer\DefaultState.cs" />
+    <Compile Include="DMVParser\Tokenizer\InCommentState.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="DMVParser\Tokenizer\InStringState.cs" />
+    <Compile Include="DMVParser\Tokenizer\ITokenizerState.cs" />
+    <Compile Include="DMVParser\Tokenizer\Token.cs" />
+    <Compile Include="DMVParser\Tokenizer\Tokenizer.cs" />
+    <Compile Include="DMVParser\Tokenizer\WhiteSpaceState.cs" />
     <Compile Include="SetOperations.cs" />
     <Compile Include="StringFilters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -82,6 +92,7 @@
     <None Include="MDX\ClusterNaming Examples.dmx" />
     <None Include="MDX\CubeInfo Example MDX Queries.mdx" />
     <None Include="MDX\Dimension Health Check Example Queries.mdx" />
+    <None Include="MDX\DMV Example MDX.mdx" />
     <None Include="MDX\EfficientToDate Example MDX Queries.mdx" />
     <None Include="MDX\FindCurrentMember Example MDX Query.mdx" />
     <None Include="MDX\FindCurrentMemberVerbose Example MDX Query.mdx" />
