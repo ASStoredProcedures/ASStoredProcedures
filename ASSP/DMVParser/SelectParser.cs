@@ -249,11 +249,11 @@ namespace ASStoredProcs.DMVParser
             {
                 if (mFrom.StartsWith(@"$system.", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    return mFrom.Substring(8);
+                    return mFrom.Substring(8).ToUpper();
                 }
                 else
                 {
-                    return mFrom;
+                    return mFrom.ToUpper();
                 }
             }
         }
