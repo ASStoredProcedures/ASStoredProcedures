@@ -202,18 +202,26 @@ namespace ASStoredProcs
                                         case "type":
                                             switch (a2.Value)
                                             {
+                                                case "xsd:boolean":
+                                                    typ = typeof(bool);
+                                                    break;
+                                                case "xsd:unsignedShort":
+                                                case "xsd:short":
+                                                case "xsd:int":
                                                 case "int":
                                                     typ = typeof(int);
                                                     break;
-                                                case "string":
-                                                    typ = typeof(string);
-                                                    break;
+                                                case "xsd:unsignedLong":
+                                                case "xsd:unsignedInt":
                                                 case "long":
                                                     typ = typeof(long);
                                                     break;
+                                                case "xsd:datetime":
                                                 case "datetime":
                                                     typ = typeof(DateTime);
                                                     break;
+                                                case "xsd:string":
+                                                case "string":
                                                 default:
                                                     typ = typeof(string);
                                                     break;

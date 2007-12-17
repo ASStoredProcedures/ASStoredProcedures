@@ -1,3 +1,19 @@
+/*============================================================================
+  File:    SelectParser.cs
+
+  Summary: The primary purpose of this class is to parse the DMV Select syntax.
+
+  Date:    December 14, 2007
+
+  ----------------------------------------------------------------------------
+  This file is part of the Analysis Services Stored Procedure Project.
+  http://www.codeplex.com/Wiki/View.aspx?ProjectName=ASStoredProcedures
+  
+  THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
+  KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
+  PARTICULAR PURPOSE.
+============================================================================*/
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -24,6 +40,7 @@ namespace ASStoredProcs.DMVParser
         
         public void Parse(string statement)
         {
+            Context.TraceEvent(100, 0, "DMV: Begin Parse");
             // break the statement into tokens    
             List<Tokenizer.Token> tList = new List<ASStoredProcs.DMVParser.Tokenizer.Token>();
             Tokenizer.Tokenizer t = new ASStoredProcs.DMVParser.Tokenizer.Tokenizer(statement);
@@ -144,6 +161,7 @@ namespace ASStoredProcs.DMVParser
                     mOrder += tList[ipos].Text + " ";
                     ipos++;
                 }
+                Context.TraceEvent(100, 0, "DMV: End Parse");
             }
         }
 

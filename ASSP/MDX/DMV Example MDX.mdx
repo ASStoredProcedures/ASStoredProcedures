@@ -1,9 +1,12 @@
+-- ASSP  www.codeplex.com/ASStoredProcedures
+-- DMV function examples
+
 // The DMV function supports all the MDX comment types
 CALL ASSP.DMV("
 SELECT CUBE_NAME , BASE_CUBE_NAME   
 // the DMV function suppports all the MDX comment types
 FROM $system.MDSCHEMA_CUBES 
-/* the $system schema is optional */ WHERE --blah
+/* the $system schema is optional */ WHERE --another comment
 CUBE_SOURCE = 1 -- Just cubes, =2 - dimensions.
 ");
 
@@ -65,7 +68,7 @@ SELECT DIMENSION_ORDINAL
  , DEFAULT_HIERARCHY
   FROM $SYSTEM.MDSCHEMA_DIMENSIONS
  WHERE CUBE_NAME LIKE '%Sales'
-ORDER BY DIMENSION_NAME, DIMENSION_ORDINAL"); -- DIMENSION_ORDINAL coming out as a string
+ORDER BY DIMENSION_ORDINAL, DIMENSION_NAME");
 
 // used the following to get a list of partition names
 //CALL ASSP.DiscoverXmlMetaData("Database\Cubes\Cube\MeasureGroups\MeasureGroup\Partitions\Partition");
@@ -88,7 +91,10 @@ CALL ASSP.DMV("
 SELECT *
 FROM $SYSTEM.DISCOVER_PARTITION_DIMENSION_STAT
 ORDER BY DIMENSION_NAME, ATTRIBUTE_COUNT_MAX desc"
-,"<DATABASE_NAME>Adventure Works DW</DATABASE_NAME><CUBE_NAME>Adventure Works</CUBE_NAME><MEASURE_GROUP_NAME>Internet Sales</MEASURE_GROUP_NAME><PARTITION_NAME>Internet_Sales_2003</PARTITION_NAME>");
+,"<DATABASE_NAME>Adventure Works DW</DATABASE_NAME>
+<CUBE_NAME>Adventure Works</CUBE_NAME>
+<MEASURE_GROUP_NAME>Internet Sales</MEASURE_GROUP_NAME>
+<PARTITION_NAME>Internet_Sales_2003</PARTITION_NAME>");
 
 -- This is how the call would look using the Discover function 
 -- (ie. without the ORDER BY)
@@ -115,6 +121,9 @@ SELECT *
 FROM $SYSTEM.DBSCHEMA_TABLES
 ");
 
+
+-- You need to be an administrator to run the following which are
+-- just standard MDX queries.
 SELECT * 
 FROM [$Account].[$Account];
 
