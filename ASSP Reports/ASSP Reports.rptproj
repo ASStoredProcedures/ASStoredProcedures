@@ -11,23 +11,41 @@
       <FullPath>Dimension Health Check SSAS.rds</FullPath>
     </ProjectItem>
     <ProjectItem>
-      <Name>Memory Usage Cube.rds</Name>
-      <FullPath>Memory Usage Cube.rds</FullPath>
-    </ProjectItem>
-    <ProjectItem>
       <Name>Discover Reports.rds</Name>
       <FullPath>Discover Reports.rds</FullPath>
     </ProjectItem>
+    <ProjectItem>
+      <Name>Memory Usage Cube.rds</Name>
+      <FullPath>Memory Usage Cube.rds</FullPath>
+    </ProjectItem>
   </DataSources>
   <Reports>
+    <ResourceProjectItem>
+      <Name>cube.gif</Name>
+      <FullPath>cube.gif</FullPath>
+      <MimeType>image/gif</MimeType>
+    </ResourceProjectItem>
     <ProjectItem>
       <Name>Dimension Health Check.rdl</Name>
       <FullPath>Dimension Health Check.rdl</FullPath>
     </ProjectItem>
     <ProjectItem>
+      <Name>Discover Cube Status.rdl</Name>
+      <FullPath>Discover Cube Status.rdl</FullPath>
+    </ProjectItem>
+    <ProjectItem>
+      <Name>Discover Database Roles.rdl</Name>
+      <FullPath>Discover Database Roles.rdl</FullPath>
+    </ProjectItem>
+    <ProjectItem>
       <Name>KeysStrToSet Example.rdl</Name>
       <FullPath>KeysStrToSet Example.rdl</FullPath>
     </ProjectItem>
+    <ResourceProjectItem>
+      <Name>measuregroup.png</Name>
+      <FullPath>measuregroup.png</FullPath>
+      <MimeType>image/x-png</MimeType>
+    </ResourceProjectItem>
     <ProjectItem>
       <Name>Memory Usage Summary.rdl</Name>
       <FullPath>Memory Usage Summary.rdl</FullPath>
@@ -36,24 +54,19 @@
       <Name>Memory Usage Trending.rdl</Name>
       <FullPath>Memory Usage Trending.rdl</FullPath>
     </ProjectItem>
-    <ProjectItem>
-      <Name>Discover Cube Status.rdl</Name>
-      <FullPath>Discover Cube Status.rdl</FullPath>
-    </ProjectItem>
     <ResourceProjectItem>
       <Name>partition.gif</Name>
       <FullPath>partition.gif</FullPath>
       <MimeType>image/gif</MimeType>
     </ResourceProjectItem>
+    <ProjectItem>
+      <Name>Discover Database Roles sub.rdl</Name>
+      <FullPath>Discover Database Roles sub.rdl</FullPath>
+    </ProjectItem>
     <ResourceProjectItem>
-      <Name>cube.gif</Name>
-      <FullPath>cube.gif</FullPath>
+      <Name>Role.gif</Name>
+      <FullPath>Role.gif</FullPath>
       <MimeType>image/gif</MimeType>
-    </ResourceProjectItem>
-    <ResourceProjectItem>
-      <Name>measuregroup.png</Name>
-      <FullPath>measuregroup.png</FullPath>
-      <MimeType>image/x-png</MimeType>
     </ResourceProjectItem>
   </Reports>
   <Configurations>

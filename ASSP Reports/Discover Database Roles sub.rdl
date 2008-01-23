@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2005/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+  <DataSources>
+    <DataSource Name="Discover Reports">
+      <DataSourceReference>Discover Reports</DataSourceReference>
+      <rd:DataSourceID>b9af4a31-2a83-4fbd-8a5c-33c537a70aef</rd:DataSourceID>
+    </DataSource>
+  </DataSources>
+  <BottomMargin>2.5cm</BottomMargin>
+  <RightMargin>2.5cm</RightMargin>
+  <PageWidth>21cm</PageWidth>
+  <ReportParameters>
+    <ReportParameter Name="DatabaseId">
+      <DataType>String</DataType>
+      <AllowBlank>true</AllowBlank>
+      <Prompt>DatabaseID</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="RoleId">
+      <DataType>String</DataType>
+      <AllowBlank>true</AllowBlank>
+      <Prompt>RoleID</Prompt>
+    </ReportParameter>
+  </ReportParameters>
+  <rd:DrawGrid>true</rd:DrawGrid>
+  <InteractiveWidth>21cm</InteractiveWidth>
+  <rd:GridSpacing>0.25cm</rd:GridSpacing>
+  <rd:SnapToGrid>true</rd:SnapToGrid>
+  <Body>
+    <ColumnSpacing>1cm</ColumnSpacing>
+    <ReportItems>
+      <Textbox Name="RoleName">
+        <rd:DefaultName>RoleName</rd:DefaultName>
+        <ZIndex>1</ZIndex>
+        <Width>2.53968cm</Width>
+        <Style>
+          <PaddingLeft>2pt</PaddingLeft>
+          <PaddingBottom>2pt</PaddingBottom>
+          <PaddingRight>2pt</PaddingRight>
+          <PaddingTop>2pt</PaddingTop>
+        </Style>
+        <CanGrow>true</CanGrow>
+        <Height>0.63492cm</Height>
+        <Value>=First(Fields!RoleName.Value)</Value>
+      </Textbox>
+      <List Name="list1">
+        <Filters>
+          <Filter>
+            <Operator>Equal</Operator>
+            <FilterValues>
+              <FilterValue>=Parameters!RoleId.Value</FilterValue>
+            </FilterValues>
+            <FilterExpression>=Fields!RoleID.Value</FilterExpression>
+          </Filter>
+        </Filters>
+        <ReportItems>
+          <Textbox Name="Name">
+            <rd:DefaultName>Name</rd:DefaultName>
+            <Style>
+              <TextAlign>Left</TextAlign>
+              <PaddingLeft>2pt</PaddingLeft>
+              <PaddingBottom>2pt</PaddingBottom>
+              <PaddingRight>2pt</PaddingRight>
+              <PaddingTop>2pt</PaddingTop>
+            </Style>
+            <CanGrow>true</CanGrow>
+            <Value>=Fields!Name.Value</Value>
+          </Textbox>
+        </ReportItems>
+        <DataSetName>dsRoles</DataSetName>
+        <Top>0.75cm</Top>
+      </List>
+    </ReportItems>
+    <Height>1.3cm</Height>
+  </Body>
+  <rd:ReportID>cda14fe2-9bb4-4ee0-a3f7-31650e92a875</rd:ReportID>
+  <LeftMargin>2.5cm</LeftMargin>
+  <DataSets>
+    <DataSet Name="dsRoles">
+      <Query>
+        <rd:SuppressAutoUpdate>true</rd:SuppressAutoUpdate>
+        <CommandText>="call assp.discoverxmlmetadatafull(""\Database\Roles\Role|Name\Members\Member"" ,""&lt;DatabaseID&gt;"  &amp; Parameters!DatabaseId.Value &amp; "&lt;/DatabaseID&gt;"")"</CommandText>
+        <DataSourceName>Discover Reports</DataSourceName>
+      </Query>
+      <Fields>
+        <Field Name="Sid">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Sid</DataField>
+        </Field>
+        <Field Name="Name">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>Name</DataField>
+        </Field>
+        <Field Name="RoleName">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>RoleName</DataField>
+        </Field>
+        <Field Name="RoleID">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>RoleID</DataField>
+        </Field>
+        <Field Name="DatabaseID">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>DatabaseID</DataField>
+        </Field>
+        <Field Name="ServerID">
+          <rd:TypeName>System.String</rd:TypeName>
+          <DataField>ServerID</DataField>
+        </Field>
+      </Fields>
+    </DataSet>
+  </DataSets>
+  <Width>9.75cm</Width>
+  <InteractiveHeight>29.7cm</InteractiveHeight>
+  <Language>en-US</Language>
+  <TopMargin>2.5cm</TopMargin>
+  <PageHeight>29.7cm</PageHeight>
+</Report>
