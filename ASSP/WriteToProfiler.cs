@@ -24,20 +24,26 @@ namespace ASStoredProcs
 {
     public class WriteToProfiler
     {
-        public static MDXValue WriteComment(int eventSubClass, int numberData, string textData)
+        public MDXValue WriteComment(int eventSubClass, int numberData, string textData)
         {
             Context.TraceEvent(eventSubClass, numberData, textData);
-            return (MDXValue) null;
+            return (MDXValue)null;
         }
 
 
-        public static MDXValue WriteComment(MDXValue inputValue, int eventSubClass, int numberData, string textData)
+        public MDXValue WriteComment(Expression expressionToEvaluate
+        ,Tuple tupleToEvaluate
+        , int eventSubClass
+        , int numberData
+        , string textData)
         {
             Context.TraceEvent(eventSubClass, numberData, textData);
-            return inputValue;
+            MDXValue m = expressionToEvaluate.Calculate(tupleToEvaluate);
+            return m ;
         }
 
-        public static MDXValue WriteComment(Set inputSet, int eventSubClass, int numberData, string textData)
+
+        public Set WriteComment(Set inputSet, int eventSubClass, int numberData, string textData)
         {
             Context.TraceEvent(eventSubClass, numberData, textData);
             return inputSet;
