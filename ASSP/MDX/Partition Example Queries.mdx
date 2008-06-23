@@ -20,3 +20,12 @@ call ASSP.CreatePartitions("Adventure Works", "Internet Sales", "[Date].[Calenda
 --partition by product category and quarter
 call ASSP.CreatePartitions("Adventure Works", "Internet Sales", "[Product].[Category].[Category].Members*[Date].[Calendar].[Calendar Quarter].Members")
 
+--partition by year then segment the distinct count value into 4 sub-partitions automatically based on the range of data in the dimension currently
+call ASSP.CreateDistinctCountPartitions("Adventure Works", "Internet Customers", "[Date].[Calendar Year].[Calendar Year].Members", "", 4)
+
+--partition by year then segment the distinct count value into 3 sub-partitions with the specified range of distinct count values
+call ASSP.CreateDistinctCountPartitions("Adventure Works", "Internet Customers", "[Date].[Calendar Year].[Calendar Year].Members", "", 3, 10000, 30000)
+
+--partition by year then segment the distinct count value into 2 sub-partitions using SO59410 as the boundary value
+call ASSP.CreateStringDistinctCountPartitions("Adventure Works", "Internet Orders", "[Date].[Calendar Year].[Calendar Year].Members", "", "SO59410")
+
