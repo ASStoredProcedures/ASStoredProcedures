@@ -56,6 +56,8 @@ namespace ASStoredProcs
                 MeasureGroup mg = cube.MeasureGroups.GetByName(MeasureGroupName);
                 Partition template = mg.Partitions[0];
 
+                if (cube.State == AnalysisState.Unprocessed) throw new Exception("The cube [" + cube.Name + "] is unprocessed currently. Run ProcessStructure on it before partitioning it with ASSP.");
+
                 AdomdServer.Context.TraceEvent(0, 0, "Resolving Set"); //will show up under the User Defined trace event which is selected by default
                 AdomdClient.CellSet cs;
                 AdomdClient.AdomdCommand cmd = new AdomdClient.AdomdCommand();
@@ -189,6 +191,733 @@ namespace ASStoredProcs
         }
 
 
+        //This function signature requires:
+        //(A) you have only one distinct count measure (which is a best practice)
+        //(B) the distinct count measure is an int or a bigint (or the unsigned equivalents)
+        //(C) that distinct count measure is built on the foreign key to a dimension
+        [AdomdServer.SafeToPrepare(true)]
+        public static void CreateDistinctCountPartitions(string CubeName, string MeasureGroupName, string SetString, string PartitionGrouperExpressionString, int NumSubPartitions)
+        {
+            if (AdomdServer.Context.ExecuteForPrepare) return;
+
+            AdomdClient.Set s = null;
+            AdomdClient.AdomdConnection conn = new AdomdClient.AdomdConnection("Data Source=" + AdomdServer.Context.CurrentServerID + ";Initial Catalog=" + AdomdServer.Context.CurrentDatabaseName);
+            conn.ShowHiddenObjects = true; //ShowHiddenObjects=true allows you to see properties (like member.ParentLevel) of dimension attributes which aren't visible: https://connect.microsoft.com/SQLServer/feedback/ViewFeedback.aspx?FeedbackID=265114
+            conn.Open();
+            Server server = new Server();
+            server.Connect("*"); //connect to the current session... important to connect this way or else you will get a deadlock when you go to save the partition changes
+
+            AdomdServer.Context.CheckCancelled(); //could be a bit long running, so allow user to cancel
+
+            try
+            {
+                AdomdServer.Context.TraceEvent(0, 0, "Retrieving Template Partition");
+                Database db = server.Databases.GetByName(AdomdServer.Context.CurrentDatabaseName);
+                Cube cube = db.Cubes.GetByName(CubeName);
+                MeasureGroup mg = cube.MeasureGroups.GetByName(MeasureGroupName);
+                Partition template = mg.Partitions[0];
+
+                if (cube.State == AnalysisState.Unprocessed) throw new Exception("The cube [" + cube.Name + "] is unprocessed currently. Run ProcessStructure on it before partitioning it with ASSP.");
+
+                ////////////////////////////////////////////////////////////////
+                //Distinct Count stuff
+                AdomdServer.Context.TraceEvent(0, 0, "Calculating min/max distinct count value");
+                
+                Measure distinctMeasure = null;
+                foreach (Measure m in mg.Measures)
+                {
+                    if (m.AggregateFunction == AggregationFunction.DistinctCount)
+                    {
+                        if (distinctMeasure != null) throw new Exception("CreateDistinctCountPartitions does not support more than one distinct count measure on measure group " + mg.Name + ".");
+                        distinctMeasure = m;
+                    }
+                }
+                if (distinctMeasure == null) throw new Exception("Could not find a distinct count measure in measure group " + mg.Name + ".");
+                ColumnBinding distinctColumnBinding = distinctMeasure.Source.Source as ColumnBinding;
+                if (distinctColumnBinding == null) throw new Exception("Distinct count measure " + distinctMeasure.Name + " was not bound to a column.");
+
+                MeasureGroupAttribute distinctMGDimensionAttribute = null;
+                foreach (MeasureGroupDimension mgDim in mg.Dimensions)
+                {
+                    if (mgDim is RegularMeasureGroupDimension)
+                    {
+                        MeasureGroupAttribute mga = PartitionMetadata.GetGranularityAttribute(mgDim);
+                        if (mga.KeyColumns.Count == 1)
+                        {
+                            ColumnBinding cb = mga.KeyColumns[0].Source as ColumnBinding;
+                            if (cb.ColumnID == distinctColumnBinding.ColumnID && cb.TableID == distinctColumnBinding.TableID)
+                            {
+                                distinctMGDimensionAttribute = mga;
+                                break;
+                            }
+                        }
+                        AdomdServer.Context.CheckCancelled(); //could be a bit long running, so allow user to cancel
+                    }
+                }
+                if (distinctMGDimensionAttribute == null) throw new Exception("Couldn't find a dimension joined to this measure group on the distinct count column [" + distinctColumnBinding.TableID + "].[" + distinctColumnBinding.ColumnID + "].");
+                if (distinctMGDimensionAttribute.KeyColumns[0].DataType != System.Data.OleDb.OleDbType.Integer && distinctMGDimensionAttribute.KeyColumns[0].DataType != System.Data.OleDb.OleDbType.BigInt && distinctMGDimensionAttribute.KeyColumns[0].DataType != System.Data.OleDb.OleDbType.UnsignedInt && distinctMGDimensionAttribute.KeyColumns[0].DataType != System.Data.OleDb.OleDbType.UnsignedBigInt)
+                    throw new Exception("ASSP encountered a problem partitioning on distinct count column [" + distinctColumnBinding.TableID + "].[" + distinctColumnBinding.ColumnID + "] as ASSP only allows partitioning on a distinct count measure of data type Int or BigInt (or the unsigned equivalents) with CreateDistinctCountPartitions. Use CreateStringDistinctCountPartitions which allows boundary values to be passed in.");
+
+                string sDistinctCountCubeDim = "[" + distinctMGDimensionAttribute.Parent.CubeDimension.Name + "]";
+                string sDistinctCountAttribute = sDistinctCountCubeDim + ".[" + distinctMGDimensionAttribute.Attribute.Name + "]";
+                string sDistinctCountLevel = sDistinctCountAttribute + ".[" + distinctMGDimensionAttribute.Attribute.Name + "]";
+
+                AdomdClient.CellSet distinctKeysCS;
+                AdomdClient.AdomdCommand distinctKeysCmd = new AdomdClient.AdomdCommand();
+                distinctKeysCmd.Connection = conn;
+
+                //doing a min and max across 20 million members took 14 minutes, so only scan the top and bottom million should should give us a pretty good estimate in a reasonable time unless the sorting is completely strange
+                distinctKeysCmd.CommandText = @"
+                    with
+                    member [Measures].[_MinKey_] as Min(Head(" + sDistinctCountLevel + ".Members,1000000), " + sDistinctCountAttribute + @".CurrentMember.Properties(""Key0"", TYPED))
+                    member [Measures].[_MaxKey_] as Max(Tail(" + sDistinctCountLevel + ".Members,1000000), " + sDistinctCountAttribute + @".CurrentMember.Properties(""Key0"", TYPED))
+                    select {[Measures].[_MinKey_], [Measures].[_MaxKey_]} on 0
+                    from [" + CubeName + @"]
+                ";
+
+                try
+                {
+                    distinctKeysCS = distinctKeysCmd.ExecuteCellSet();
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("Could not retrieve the min and max key value for the dimension matching the distinct count measure: " + ex.Message);
+                }
+
+                long lngMinDistinctValue = Convert.ToInt64(distinctKeysCS.Cells[0].Value);
+                long lngMaxDistinctValue = Convert.ToInt64(distinctKeysCS.Cells[1].Value);
+
+                AdomdServer.Context.TraceEvent(0, 0, "Min distinct value: " + lngMinDistinctValue);
+                AdomdServer.Context.TraceEvent(0, 0, "Max distinct value: " + lngMaxDistinctValue);
+
+                AdomdServer.Context.CheckCancelled(); //could be a bit long running, so allow user to cancel
+
+                //////////////////////////////////////////////////////////////////
+
+
+                AdomdServer.Context.TraceEvent(0, 0, "Resolving Set"); //will show up under the User Defined trace event which is selected by default
+                AdomdClient.CellSet cs;
+                AdomdClient.AdomdCommand cmd = new AdomdClient.AdomdCommand();
+                cmd.Connection = conn;
+                if (String.IsNullOrEmpty(PartitionGrouperExpressionString))
+                {
+                    cmd.CommandText = "select {} on 0, {" + SetString + "} on 1 "
+                     + "from [" + CubeName + "]";
+                    try
+                    {
+                        cs = cmd.ExecuteCellSet();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("The set specified was not valid: " + ex.Message);
+                    }
+                }
+                else
+                {
+                    cmd.CommandText = "with member [Measures].[_ASSP_PartitionGrouper_] as " + PartitionGrouperExpressionString + " "
+                     + "select [Measures].[_ASSP_PartitionGrouper_] on 0, "
+                     + "{" + SetString + "} on 1 "
+                     + "from [" + CubeName + "]";
+                    try
+                    {
+                        cs = cmd.ExecuteCellSet();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("The set or partition grouper specified was not valid: " + ex.Message);
+                    }
+                }
+                s = cs.Axes[1].Set;
+
+                AdomdServer.Context.TraceEvent(0, 0, "Determining Partition Scheme");
+                Dictionary<string, PartitionMetadata> dictPartitions = new Dictionary<string, PartitionMetadata>();
+                List<string> listPartitionNames = new List<string>(dictPartitions.Count);
+                for (int iTuple = 0; iTuple < s.Tuples.Count; iTuple++)
+                {
+                    AdomdServer.Context.CheckCancelled(); //could be a bit long running, so allow user to cancel
+
+                    AdomdClient.Tuple t = s.Tuples[iTuple];
+                    string tostring = t.ToString();
+                    string sTupleUniqueName = GetTupleUniqueName(t);
+                    string sTupleName = GetTupleName(t);
+                    string sOriginalGrouper = sTupleUniqueName;
+
+                    if (!String.IsNullOrEmpty(PartitionGrouperExpressionString))
+                    {
+                        //if a partition grouper has been specified, then group by it
+                        sTupleName = sOriginalGrouper = cs.Cells[0, iTuple].Value.ToString();
+                    }
+
+                    for (int iSubPartition = 1; iSubPartition <= NumSubPartitions; iSubPartition++)
+                    {
+                        string sGrouper = sOriginalGrouper + " - DistinctCountSegment" + iSubPartition;
+                        if (!dictPartitions.ContainsKey(sGrouper))
+                        {
+                            string sPartitionName = mg.Name + " - " + sTupleName + " - DistinctCountSegment" + iSubPartition;
+                            sPartitionName = sPartitionName.Trim();
+                            if (String.IsNullOrEmpty(PartitionGrouperExpressionString))
+                            {
+                                //make sure partition name is unique
+                                int i = 1;
+                                while (listPartitionNames.Contains(sPartitionName))
+                                {
+                                    sPartitionName = mg.Name + " - " + sTupleName + " - DistinctCountSegment" + iSubPartition + " - " + (++i);
+                                }
+                            }
+                            dictPartitions.Add(sGrouper, new PartitionMetadata(sPartitionName, t));
+                            listPartitionNames.Add(sPartitionName);
+
+                            DataColumn dc = distinctMeasure.ParentCube.DataSourceView.Schema.Tables[distinctColumnBinding.TableID].Columns[distinctColumnBinding.ColumnID];
+                            if (!dc.ExtendedProperties.ContainsKey("ComputedColumnExpression"))
+                            {
+                                dictPartitions[sGrouper].DistinctCountColumn = "[" + distinctMeasure.ParentCube.DataSourceView.Schema.Tables[distinctColumnBinding.TableID].ExtendedProperties["FriendlyName"].ToString() + "].[" + (dc.ExtendedProperties["DbColumnName"] ?? dc.ColumnName).ToString() + "]";
+                            }
+                            else
+                            {
+                                dictPartitions[sGrouper].DistinctCountColumn = dc.ExtendedProperties["ComputedColumnExpression"].ToString();
+                            }
+
+                            if (iSubPartition > 1)
+                                dictPartitions[sGrouper].DistinctCountRangeStart = (((lngMaxDistinctValue - lngMinDistinctValue) / NumSubPartitions) * (iSubPartition - 1) + lngMinDistinctValue + 1).ToString();
+                            if (iSubPartition < NumSubPartitions)
+                                dictPartitions[sGrouper].DistinctCountRangeEnd = (((lngMaxDistinctValue - lngMinDistinctValue) / NumSubPartitions) * iSubPartition + lngMinDistinctValue).ToString();
+                        }
+                        else
+                        {
+                            dictPartitions[sGrouper].tuples.Add(t);
+                        }
+                    }
+                }
+
+                //remove all existing partitions except template
+                for (int iPartition = mg.Partitions.Count - 1; iPartition > 0; iPartition--)
+                {
+                    mg.Partitions.RemoveAt(iPartition);
+                }
+
+                bool bNeedToDeleteTemplate = true;
+                foreach (PartitionMetadata pm in dictPartitions.Values)
+                {
+                    AdomdServer.Context.CheckCancelled(); //could be a bit long running, so allow user to cancel
+
+                    AdomdServer.Context.TraceEvent(0, 0, "Building Partition: " + pm.PartitionName);
+                    if (template.ID == pm.PartitionName)
+                    {
+                        pm.Partition = template;
+                        bNeedToDeleteTemplate = false;
+                        pm.Partition.Process(ProcessType.ProcessClear); //unprocess it
+                    }
+                    else
+                    {
+                        pm.Partition = template.Clone();
+                    }
+                    pm.Partition.Slice = pm.PartitionSlice;
+                    pm.Partition.Name = pm.PartitionName;
+                    pm.Partition.ID = pm.PartitionName;
+                    if (template.ID != pm.PartitionName) mg.Partitions.Add(pm.Partition);
+
+                    //if we're only building one partition, it must be the All member
+                    if (s.Tuples.Count == 1) pm.TupleMustBeOnlyAllMembers = true;
+
+                    string sQuery = "";
+                    sQuery = pm.OldQueryDefinition;
+                    string sWhereClause = pm.NewPartitionWhereClause;
+                    sQuery += "\r\n" + sWhereClause;
+                    pm.Partition.Source = new QueryBinding(pm.Partition.DataSource.ID, sQuery);
+                }
+                if (bNeedToDeleteTemplate) mg.Partitions.Remove(template);
+
+                AdomdServer.Context.TraceEvent(0, 0, "Saving changes");
+                mg.Update(UpdateOptions.ExpandFull);
+                AdomdServer.Context.TraceEvent(0, 0, "Done creating partitions");
+            }
+            finally
+            {
+                try
+                {
+                    conn.Close();
+                }
+                catch { }
+
+                try
+                {
+                    server.Disconnect();
+                }
+                catch { }
+            }
+        }
+
+
+
+        //This function signature requires:
+        //(A) you have only one distinct count measure (which is a best practice)
+        //(B) the distinct count measure is an int or a bigint (or the unsigned equivalents)
+        [AdomdServer.SafeToPrepare(true)]
+        public static void CreateDistinctCountPartitions(string CubeName, string MeasureGroupName, string SetString, string PartitionGrouperExpressionString, int NumSubPartitions, long MinDistinctValue, long MaxDistinctValue)
+        {
+            if (AdomdServer.Context.ExecuteForPrepare) return;
+
+            AdomdClient.Set s = null;
+            AdomdClient.AdomdConnection conn = new AdomdClient.AdomdConnection("Data Source=" + AdomdServer.Context.CurrentServerID + ";Initial Catalog=" + AdomdServer.Context.CurrentDatabaseName);
+            conn.ShowHiddenObjects = true; //ShowHiddenObjects=true allows you to see properties (like member.ParentLevel) of dimension attributes which aren't visible: https://connect.microsoft.com/SQLServer/feedback/ViewFeedback.aspx?FeedbackID=265114
+            conn.Open();
+            Server server = new Server();
+            server.Connect("*"); //connect to the current session... important to connect this way or else you will get a deadlock when you go to save the partition changes
+
+            AdomdServer.Context.CheckCancelled(); //could be a bit long running, so allow user to cancel
+
+            try
+            {
+                AdomdServer.Context.TraceEvent(0, 0, "Retrieving Template Partition");
+                Database db = server.Databases.GetByName(AdomdServer.Context.CurrentDatabaseName);
+                Cube cube = db.Cubes.GetByName(CubeName);
+                MeasureGroup mg = cube.MeasureGroups.GetByName(MeasureGroupName);
+                Partition template = mg.Partitions[0];
+
+                if (cube.State == AnalysisState.Unprocessed) throw new Exception("The cube [" + cube.Name + "] is unprocessed currently. Run ProcessStructure on it before partitioning it with ASSP.");
+
+                ////////////////////////////////////////////////////////////////
+                //Distinct Count stuff
+                AdomdServer.Context.TraceEvent(0, 0, "Validating min/max distinct count values");
+
+                Measure distinctMeasure = null;
+                foreach (Measure m in mg.Measures)
+                {
+                    if (m.AggregateFunction == AggregationFunction.DistinctCount)
+                    {
+                        if (distinctMeasure != null) throw new Exception("CreateDistinctCountPartitions does not support more than one distinct count measure on measure group " + mg.Name + ".");
+                        distinctMeasure = m;
+                    }
+                }
+                if (distinctMeasure == null) throw new Exception("Could not find a distinct count measure in measure group " + mg.Name + ".");
+                ColumnBinding distinctColumnBinding = distinctMeasure.Source.Source as ColumnBinding;
+                if (distinctColumnBinding == null) throw new Exception("Distinct count measure " + distinctMeasure.Name + " was not bound to a column.");
+
+                if (distinctMeasure.Source.DataType != System.Data.OleDb.OleDbType.Integer && distinctMeasure.Source.DataType != System.Data.OleDb.OleDbType.BigInt && distinctMeasure.Source.DataType != System.Data.OleDb.OleDbType.UnsignedInt && distinctMeasure.Source.DataType != System.Data.OleDb.OleDbType.UnsignedBigInt)
+                    throw new Exception("ASSP encountered a problem partitioning on distinct count column [" + distinctColumnBinding.TableID + "].[" + distinctColumnBinding.ColumnID + "] as ASSP only allows partitioning on a distinct count measure of data type Int or BigInt (or the unsigned equivalents) with CreateDistinctCountPartitions. Use CreateStringDistinctCountPartitions which allows boundary values to be passed in.");
+
+                long lngMinDistinctValue = MinDistinctValue;
+                long lngMaxDistinctValue = MaxDistinctValue;
+
+                AdomdServer.Context.TraceEvent(0, 0, "Min distinct value: " + lngMinDistinctValue);
+                AdomdServer.Context.TraceEvent(0, 0, "Max distinct value: " + lngMaxDistinctValue);
+
+                AdomdServer.Context.CheckCancelled(); //could be a bit long running, so allow user to cancel
+
+                //////////////////////////////////////////////////////////////////
+
+
+                AdomdServer.Context.TraceEvent(0, 0, "Resolving Set"); //will show up under the User Defined trace event which is selected by default
+                AdomdClient.CellSet cs;
+                AdomdClient.AdomdCommand cmd = new AdomdClient.AdomdCommand();
+                cmd.Connection = conn;
+                if (String.IsNullOrEmpty(PartitionGrouperExpressionString))
+                {
+                    cmd.CommandText = "select {} on 0, {" + SetString + "} on 1 "
+                     + "from [" + CubeName + "]";
+                    try
+                    {
+                        cs = cmd.ExecuteCellSet();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("The set specified was not valid: " + ex.Message);
+                    }
+                }
+                else
+                {
+                    cmd.CommandText = "with member [Measures].[_ASSP_PartitionGrouper_] as " + PartitionGrouperExpressionString + " "
+                     + "select [Measures].[_ASSP_PartitionGrouper_] on 0, "
+                     + "{" + SetString + "} on 1 "
+                     + "from [" + CubeName + "]";
+                    try
+                    {
+                        cs = cmd.ExecuteCellSet();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("The set or partition grouper specified was not valid: " + ex.Message);
+                    }
+                }
+                s = cs.Axes[1].Set;
+
+                AdomdServer.Context.TraceEvent(0, 0, "Determining Partition Scheme");
+                Dictionary<string, PartitionMetadata> dictPartitions = new Dictionary<string, PartitionMetadata>();
+                List<string> listPartitionNames = new List<string>(dictPartitions.Count);
+                for (int iTuple = 0; iTuple < s.Tuples.Count; iTuple++)
+                {
+                    AdomdServer.Context.CheckCancelled(); //could be a bit long running, so allow user to cancel
+
+                    AdomdClient.Tuple t = s.Tuples[iTuple];
+                    string tostring = t.ToString();
+                    string sTupleUniqueName = GetTupleUniqueName(t);
+                    string sTupleName = GetTupleName(t);
+                    string sOriginalGrouper = sTupleUniqueName;
+
+                    if (!String.IsNullOrEmpty(PartitionGrouperExpressionString))
+                    {
+                        //if a partition grouper has been specified, then group by it
+                        sTupleName = sOriginalGrouper = cs.Cells[0, iTuple].Value.ToString();
+                    }
+
+                    for (int iSubPartition = 1; iSubPartition <= NumSubPartitions; iSubPartition++)
+                    {
+                        string sGrouper = sOriginalGrouper + " - DistinctCountSegment" + iSubPartition;
+                        if (!dictPartitions.ContainsKey(sGrouper))
+                        {
+                            string sPartitionName = mg.Name + " - " + sTupleName + " - DistinctCountSegment" + iSubPartition;
+                            sPartitionName = sPartitionName.Trim();
+                            if (String.IsNullOrEmpty(PartitionGrouperExpressionString))
+                            {
+                                //make sure partition name is unique
+                                int i = 1;
+                                while (listPartitionNames.Contains(sPartitionName))
+                                {
+                                    sPartitionName = mg.Name + " - " + sTupleName + " - DistinctCountSegment" + iSubPartition + " - " + (++i);
+                                }
+                            }
+                            dictPartitions.Add(sGrouper, new PartitionMetadata(sPartitionName, t));
+                            listPartitionNames.Add(sPartitionName);
+
+                            DataColumn dc = distinctMeasure.ParentCube.DataSourceView.Schema.Tables[distinctColumnBinding.TableID].Columns[distinctColumnBinding.ColumnID];
+                            if (!dc.ExtendedProperties.ContainsKey("ComputedColumnExpression"))
+                            {
+                                dictPartitions[sGrouper].DistinctCountColumn = "[" + distinctMeasure.ParentCube.DataSourceView.Schema.Tables[distinctColumnBinding.TableID].ExtendedProperties["FriendlyName"].ToString() + "].[" + (dc.ExtendedProperties["DbColumnName"] ?? dc.ColumnName).ToString() + "]";
+                            }
+                            else
+                            {
+                                dictPartitions[sGrouper].DistinctCountColumn = dc.ExtendedProperties["ComputedColumnExpression"].ToString();
+                            }
+
+                            if (iSubPartition > 1)
+                                dictPartitions[sGrouper].DistinctCountRangeStart = (((lngMaxDistinctValue - lngMinDistinctValue) / NumSubPartitions) * (iSubPartition - 1) + lngMinDistinctValue + 1).ToString();
+                            if (iSubPartition < NumSubPartitions)
+                                dictPartitions[sGrouper].DistinctCountRangeEnd = (((lngMaxDistinctValue - lngMinDistinctValue) / NumSubPartitions) * iSubPartition + lngMinDistinctValue).ToString();
+                        }
+                        else
+                        {
+                            dictPartitions[sGrouper].tuples.Add(t);
+                        }
+                    }
+                }
+
+                //remove all existing partitions except template
+                for (int iPartition = mg.Partitions.Count - 1; iPartition > 0; iPartition--)
+                {
+                    mg.Partitions.RemoveAt(iPartition);
+                }
+
+                bool bNeedToDeleteTemplate = true;
+                foreach (PartitionMetadata pm in dictPartitions.Values)
+                {
+                    AdomdServer.Context.CheckCancelled(); //could be a bit long running, so allow user to cancel
+
+                    AdomdServer.Context.TraceEvent(0, 0, "Building Partition: " + pm.PartitionName);
+                    if (template.ID == pm.PartitionName)
+                    {
+                        pm.Partition = template;
+                        bNeedToDeleteTemplate = false;
+                        pm.Partition.Process(ProcessType.ProcessClear); //unprocess it
+                    }
+                    else
+                    {
+                        pm.Partition = template.Clone();
+                    }
+                    pm.Partition.Slice = pm.PartitionSlice;
+                    pm.Partition.Name = pm.PartitionName;
+                    pm.Partition.ID = pm.PartitionName;
+                    if (template.ID != pm.PartitionName) mg.Partitions.Add(pm.Partition);
+
+                    //if we're only building one partition, it must be the All member
+                    if (s.Tuples.Count == 1) pm.TupleMustBeOnlyAllMembers = true;
+
+                    string sQuery = "";
+                    sQuery = pm.OldQueryDefinition;
+                    string sWhereClause = pm.NewPartitionWhereClause;
+                    sQuery += "\r\n" + sWhereClause;
+                    pm.Partition.Source = new QueryBinding(pm.Partition.DataSource.ID, sQuery);
+                }
+                if (bNeedToDeleteTemplate) mg.Partitions.Remove(template);
+
+                AdomdServer.Context.TraceEvent(0, 0, "Saving changes");
+                mg.Update(UpdateOptions.ExpandFull);
+                AdomdServer.Context.TraceEvent(0, 0, "Done creating partitions");
+            }
+            finally
+            {
+                try
+                {
+                    conn.Close();
+                }
+                catch { }
+
+                try
+                {
+                    server.Disconnect();
+                }
+                catch { }
+            }
+        }
+
+        //These function signatures require:
+        //(A) you have only one distinct count measure (which is a best practice)
+        [AdomdServer.SafeToPrepare(true)]
+        public static void CreateStringDistinctCountPartitions(string CubeName, string MeasureGroupName, string SetString, string PartitionGrouperExpressionString, string BoundaryValue1)
+        {
+            CreateStringDistinctCountPartitions(CubeName, MeasureGroupName, SetString, PartitionGrouperExpressionString, new string[] { BoundaryValue1 });
+        }
+
+        [AdomdServer.SafeToPrepare(true)]
+        public static void CreateStringDistinctCountPartitions(string CubeName, string MeasureGroupName, string SetString, string PartitionGrouperExpressionString, string BoundaryValue1, string BoundaryValue2)
+        {
+            CreateStringDistinctCountPartitions(CubeName, MeasureGroupName, SetString, PartitionGrouperExpressionString, new string[] { BoundaryValue1, BoundaryValue2 });
+        }
+
+        [AdomdServer.SafeToPrepare(true)]
+        public static void CreateStringDistinctCountPartitions(string CubeName, string MeasureGroupName, string SetString, string PartitionGrouperExpressionString, string BoundaryValue1, string BoundaryValue2, string BoundaryValue3)
+        {
+            CreateStringDistinctCountPartitions(CubeName, MeasureGroupName, SetString, PartitionGrouperExpressionString, new string[] { BoundaryValue1, BoundaryValue2, BoundaryValue3 });
+        }
+
+        [AdomdServer.SafeToPrepare(true)]
+        public static void CreateStringDistinctCountPartitions(string CubeName, string MeasureGroupName, string SetString, string PartitionGrouperExpressionString, string BoundaryValue1, string BoundaryValue2, string BoundaryValue3, string BoundaryValue4)
+        {
+            CreateStringDistinctCountPartitions(CubeName, MeasureGroupName, SetString, PartitionGrouperExpressionString, new string[] { BoundaryValue1, BoundaryValue2, BoundaryValue3, BoundaryValue4 });
+        }
+
+        [AdomdServer.SafeToPrepare(true)]
+        public static void CreateStringDistinctCountPartitions(string CubeName, string MeasureGroupName, string SetString, string PartitionGrouperExpressionString, string BoundaryValue1, string BoundaryValue2, string BoundaryValue3, string BoundaryValue4, string BoundaryValue5)
+        {
+            CreateStringDistinctCountPartitions(CubeName, MeasureGroupName, SetString, PartitionGrouperExpressionString, new string[] { BoundaryValue1, BoundaryValue2, BoundaryValue3, BoundaryValue4, BoundaryValue5 });
+        }
+
+        [AdomdServer.SafeToPrepare(true)]
+        public static void CreateStringDistinctCountPartitions(string CubeName, string MeasureGroupName, string SetString, string PartitionGrouperExpressionString, string BoundaryValue1, string BoundaryValue2, string BoundaryValue3, string BoundaryValue4, string BoundaryValue5, string BoundaryValue6)
+        {
+            CreateStringDistinctCountPartitions(CubeName, MeasureGroupName, SetString, PartitionGrouperExpressionString, new string[] { BoundaryValue1, BoundaryValue2, BoundaryValue3, BoundaryValue4, BoundaryValue5, BoundaryValue6 });
+        }
+
+        [AdomdServer.SafeToPrepare(true)]
+        public static void CreateStringDistinctCountPartitions(string CubeName, string MeasureGroupName, string SetString, string PartitionGrouperExpressionString, string BoundaryValue1, string BoundaryValue2, string BoundaryValue3, string BoundaryValue4, string BoundaryValue5, string BoundaryValue6, string BoundaryValue7)
+        {
+            CreateStringDistinctCountPartitions(CubeName, MeasureGroupName, SetString, PartitionGrouperExpressionString, new string[] { BoundaryValue1, BoundaryValue2, BoundaryValue3, BoundaryValue4, BoundaryValue5, BoundaryValue6, BoundaryValue7 });
+        }
+
+        [AdomdServer.SafeToPrepare(true)]
+        public static void CreateStringDistinctCountPartitions(string CubeName, string MeasureGroupName, string SetString, string PartitionGrouperExpressionString, string BoundaryValue1, string BoundaryValue2, string BoundaryValue3, string BoundaryValue4, string BoundaryValue5, string BoundaryValue6, string BoundaryValue7, string BoundaryValue8)
+        {
+            CreateStringDistinctCountPartitions(CubeName, MeasureGroupName, SetString, PartitionGrouperExpressionString, new string[] { BoundaryValue1, BoundaryValue2, BoundaryValue3, BoundaryValue4, BoundaryValue5, BoundaryValue6, BoundaryValue7, BoundaryValue8 });
+        }
+
+        [AdomdServer.SafeToPrepare(true)]
+        public static void CreateStringDistinctCountPartitions(string CubeName, string MeasureGroupName, string SetString, string PartitionGrouperExpressionString, string BoundaryValue1, string BoundaryValue2, string BoundaryValue3, string BoundaryValue4, string BoundaryValue5, string BoundaryValue6, string BoundaryValue7, string BoundaryValue8, string BoundaryValue9)
+        {
+            CreateStringDistinctCountPartitions(CubeName, MeasureGroupName, SetString, PartitionGrouperExpressionString, new string[] { BoundaryValue1, BoundaryValue2, BoundaryValue3, BoundaryValue4, BoundaryValue5, BoundaryValue6, BoundaryValue7, BoundaryValue8, BoundaryValue9 });
+        }
+
+        private static void CreateStringDistinctCountPartitions(string CubeName, string MeasureGroupName, string SetString, string PartitionGrouperExpressionString, string[] BoundaryValues)
+        {
+            int NumSubPartitions = BoundaryValues.Length + 1;
+
+            if (AdomdServer.Context.ExecuteForPrepare) return;
+
+            AdomdClient.Set s = null;
+            AdomdClient.AdomdConnection conn = new AdomdClient.AdomdConnection("Data Source=" + AdomdServer.Context.CurrentServerID + ";Initial Catalog=" + AdomdServer.Context.CurrentDatabaseName);
+            conn.ShowHiddenObjects = true; //ShowHiddenObjects=true allows you to see properties (like member.ParentLevel) of dimension attributes which aren't visible: https://connect.microsoft.com/SQLServer/feedback/ViewFeedback.aspx?FeedbackID=265114
+            conn.Open();
+            Server server = new Server();
+            server.Connect("*"); //connect to the current session... important to connect this way or else you will get a deadlock when you go to save the partition changes
+
+            AdomdServer.Context.CheckCancelled(); //could be a bit long running, so allow user to cancel
+
+            try
+            {
+                AdomdServer.Context.TraceEvent(0, 0, "Retrieving Template Partition");
+                Database db = server.Databases.GetByName(AdomdServer.Context.CurrentDatabaseName);
+                Cube cube = db.Cubes.GetByName(CubeName);
+                MeasureGroup mg = cube.MeasureGroups.GetByName(MeasureGroupName);
+                Partition template = mg.Partitions[0];
+
+                if (cube.State == AnalysisState.Unprocessed) throw new Exception("The cube [" + cube.Name + "] is unprocessed currently. Run ProcessStructure on it before partitioning it with ASSP.");
+
+                ////////////////////////////////////////////////////////////////
+                //Distinct Count stuff
+                AdomdServer.Context.TraceEvent(0, 0, "Calculating min/max distinct count value");
+
+                Measure distinctMeasure = null;
+                foreach (Measure m in mg.Measures)
+                {
+                    if (m.AggregateFunction == AggregationFunction.DistinctCount)
+                    {
+                        if (distinctMeasure != null) throw new Exception("CreateStringDistinctCountPartitions does not support more than one distinct count measure on measure group " + mg.Name + ".");
+                        distinctMeasure = m;
+                    }
+                }
+                if (distinctMeasure == null) throw new Exception("Could not find a distinct count measure in measure group " + mg.Name + ".");
+                ColumnBinding distinctColumnBinding = distinctMeasure.Source.Source as ColumnBinding;
+                if (distinctColumnBinding == null) throw new Exception("Distinct count measure " + distinctMeasure.Name + " was not bound to a column.");
+
+                AdomdServer.Context.TraceEvent(0, 0, "Boundary values: " + String.Join(", ", BoundaryValues));
+
+                AdomdServer.Context.CheckCancelled(); //could be a bit long running, so allow user to cancel
+
+                //////////////////////////////////////////////////////////////////
+
+
+                AdomdServer.Context.TraceEvent(0, 0, "Resolving Set"); //will show up under the User Defined trace event which is selected by default
+                AdomdClient.CellSet cs;
+                AdomdClient.AdomdCommand cmd = new AdomdClient.AdomdCommand();
+                cmd.Connection = conn;
+                if (String.IsNullOrEmpty(PartitionGrouperExpressionString))
+                {
+                    cmd.CommandText = "select {} on 0, {" + SetString + "} on 1 "
+                     + "from [" + CubeName + "]";
+                    try
+                    {
+                        cs = cmd.ExecuteCellSet();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("The set specified was not valid: " + ex.Message);
+                    }
+                }
+                else
+                {
+                    cmd.CommandText = "with member [Measures].[_ASSP_PartitionGrouper_] as " + PartitionGrouperExpressionString + " "
+                     + "select [Measures].[_ASSP_PartitionGrouper_] on 0, "
+                     + "{" + SetString + "} on 1 "
+                     + "from [" + CubeName + "]";
+                    try
+                    {
+                        cs = cmd.ExecuteCellSet();
+                    }
+                    catch (Exception ex)
+                    {
+                        throw new Exception("The set or partition grouper specified was not valid: " + ex.Message);
+                    }
+                }
+                s = cs.Axes[1].Set;
+
+                AdomdServer.Context.TraceEvent(0, 0, "Determining Partition Scheme");
+                Dictionary<string, PartitionMetadata> dictPartitions = new Dictionary<string, PartitionMetadata>();
+                List<string> listPartitionNames = new List<string>(dictPartitions.Count);
+                for (int iTuple = 0; iTuple < s.Tuples.Count; iTuple++)
+                {
+                    AdomdServer.Context.CheckCancelled(); //could be a bit long running, so allow user to cancel
+
+                    AdomdClient.Tuple t = s.Tuples[iTuple];
+                    string tostring = t.ToString();
+                    string sTupleUniqueName = GetTupleUniqueName(t);
+                    string sTupleName = GetTupleName(t);
+                    string sOriginalGrouper = sTupleUniqueName;
+
+                    if (!String.IsNullOrEmpty(PartitionGrouperExpressionString))
+                    {
+                        //if a partition grouper has been specified, then group by it
+                        sTupleName = sOriginalGrouper = cs.Cells[0, iTuple].Value.ToString();
+                    }
+
+                    for (int iSubPartition = 1; iSubPartition <= NumSubPartitions; iSubPartition++)
+                    {
+                        string sGrouper = sOriginalGrouper + " - DistinctCountSegment" + iSubPartition;
+                        if (!dictPartitions.ContainsKey(sGrouper))
+                        {
+                            string sPartitionName = mg.Name + " - " + sTupleName + " - DistinctCountSegment" + iSubPartition;
+                            sPartitionName = sPartitionName.Trim();
+                            if (String.IsNullOrEmpty(PartitionGrouperExpressionString))
+                            {
+                                //make sure partition name is unique
+                                int i = 1;
+                                while (listPartitionNames.Contains(sPartitionName))
+                                {
+                                    sPartitionName = mg.Name + " - " + sTupleName + " - DistinctCountSegment" + iSubPartition + " - " + (++i);
+                                }
+                            }
+                            dictPartitions.Add(sGrouper, new PartitionMetadata(sPartitionName, t));
+                            listPartitionNames.Add(sPartitionName);
+
+                            DataColumn dc = distinctMeasure.ParentCube.DataSourceView.Schema.Tables[distinctColumnBinding.TableID].Columns[distinctColumnBinding.ColumnID];
+                            if (!dc.ExtendedProperties.ContainsKey("ComputedColumnExpression"))
+                            {
+                                dictPartitions[sGrouper].DistinctCountColumn = "[" + distinctMeasure.ParentCube.DataSourceView.Schema.Tables[distinctColumnBinding.TableID].ExtendedProperties["FriendlyName"].ToString() + "].[" + (dc.ExtendedProperties["DbColumnName"] ?? dc.ColumnName).ToString() + "]";
+                            }
+                            else
+                            {
+                                dictPartitions[sGrouper].DistinctCountColumn = dc.ExtendedProperties["ComputedColumnExpression"].ToString();
+                            }
+
+                            dictPartitions[sGrouper].DistinctCountRangeEndInclusive = false;
+                            if (iSubPartition > 1)
+                                dictPartitions[sGrouper].DistinctCountRangeStart = "'" + BoundaryValues[iSubPartition - 2].Replace("'", "''") + "'";
+                            if (iSubPartition < NumSubPartitions)
+                                dictPartitions[sGrouper].DistinctCountRangeEnd = "'" + BoundaryValues[iSubPartition - 1].Replace("'", "''") + "'";
+                        }
+                        else
+                        {
+                            dictPartitions[sGrouper].tuples.Add(t);
+                        }
+                    }
+                }
+
+                //remove all existing partitions except template
+                for (int iPartition = mg.Partitions.Count - 1; iPartition > 0; iPartition--)
+                {
+                    mg.Partitions.RemoveAt(iPartition);
+                }
+
+                bool bNeedToDeleteTemplate = true;
+                foreach (PartitionMetadata pm in dictPartitions.Values)
+                {
+                    AdomdServer.Context.CheckCancelled(); //could be a bit long running, so allow user to cancel
+
+                    AdomdServer.Context.TraceEvent(0, 0, "Building Partition: " + pm.PartitionName);
+                    if (template.ID == pm.PartitionName)
+                    {
+                        pm.Partition = template;
+                        bNeedToDeleteTemplate = false;
+                        pm.Partition.Process(ProcessType.ProcessClear); //unprocess it
+                    }
+                    else
+                    {
+                        pm.Partition = template.Clone();
+                    }
+                    pm.Partition.Slice = pm.PartitionSlice;
+                    pm.Partition.Name = pm.PartitionName;
+                    pm.Partition.ID = pm.PartitionName;
+                    if (template.ID != pm.PartitionName) mg.Partitions.Add(pm.Partition);
+
+                    //if we're only building one partition, it must be the All member
+                    if (s.Tuples.Count == 1) pm.TupleMustBeOnlyAllMembers = true;
+
+                    string sQuery = "";
+                    sQuery = pm.OldQueryDefinition;
+                    string sWhereClause = pm.NewPartitionWhereClause;
+                    sQuery += "\r\n" + sWhereClause;
+                    pm.Partition.Source = new QueryBinding(pm.Partition.DataSource.ID, sQuery);
+                }
+                if (bNeedToDeleteTemplate) mg.Partitions.Remove(template);
+
+                AdomdServer.Context.TraceEvent(0, 0, "Saving changes");
+                mg.Update(UpdateOptions.ExpandFull);
+                AdomdServer.Context.TraceEvent(0, 0, "Done creating partitions");
+            }
+            finally
+            {
+                try
+                {
+                    conn.Close();
+                }
+                catch { }
+
+                try
+                {
+                    server.Disconnect();
+                }
+                catch { }
+            }
+        }
+
+
         private static char[] invalidChars = new char[] { '.', ',', ';', '\'', '`', ':', '/', '\\', '*', '|', '?', '"', '&', '%', '$', '!', '+', '=', '(', ')', '[', ']', '{', '}', '<', '>' };
         private static string GetTupleName(AdomdClient.Tuple t)
         {
@@ -233,6 +962,10 @@ namespace ASStoredProcs
             public List<AdomdClient.Tuple> tuples = new List<AdomdClient.Tuple>();
             public string PartitionName;
             public bool TupleMustBeOnlyAllMembers = false;
+            public string DistinctCountColumn;
+            public string DistinctCountRangeStart;
+            public string DistinctCountRangeEnd;
+            public bool DistinctCountRangeEndInclusive = true;
 
             public string PartitionSlice
             {
@@ -392,6 +1125,31 @@ namespace ASStoredProcs
                             sWhere += "(" + sWhereForTuple + ")";
                         }
                     } //end of looping through tuples
+
+                    //add distinct count range
+                    if (this.DistinctCountRangeStart != null || this.DistinctCountRangeEnd != null)
+                    {
+                        if (sWhere.Length > 0) sWhere += "\r\nAND ";
+                        if (this.DistinctCountRangeStart == null)
+                        {
+                            if (DistinctCountRangeEndInclusive)
+                                sWhere += "(" + DistinctCountColumn + " <= " + this.DistinctCountRangeEnd + ")";
+                            else
+                                sWhere += "(" + DistinctCountColumn + " < " + this.DistinctCountRangeEnd + ")";
+                        }
+                        else if (this.DistinctCountRangeEnd == null)
+                        {
+                            sWhere += "(" + DistinctCountColumn + " >= " + this.DistinctCountRangeStart + ")";
+                        }
+                        else
+                        {
+                            if (DistinctCountRangeEndInclusive)
+                                sWhere += "(" + DistinctCountColumn + " between " + this.DistinctCountRangeStart + " and " + this.DistinctCountRangeEnd + ")";
+                            else
+                                sWhere += "(" + DistinctCountColumn + " >= " + this.DistinctCountRangeStart + " and " + DistinctCountColumn + " < " + this.DistinctCountRangeEnd + ")";
+                        }
+                    }
+                    
                     return (sWhere.Length > 0 ? "\r\nWHERE " + sWhere : "");
                 }
             }
@@ -440,7 +1198,7 @@ namespace ASStoredProcs
                 return false;
             }
             
-            private static MeasureGroupAttribute GetGranularityAttribute(MeasureGroupDimension mgdim)
+            internal static MeasureGroupAttribute GetGranularityAttribute(MeasureGroupDimension mgdim)
             {
                 if (mgdim is ReferenceMeasureGroupDimension)
                 {
