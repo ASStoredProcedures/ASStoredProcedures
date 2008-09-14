@@ -29,11 +29,11 @@ namespace ASStoredProcs
 
         public static void AssignValue(string subCube, MDXValue valueToAssign)
         {
-            Server mServer;
+            Microsoft.AnalysisServices.Server mServer;
             Database mDB;
             Cube mCube;
             MdxScript mMdxScript;
-            mServer = new Server();
+            mServer = new Microsoft.AnalysisServices.Server();
             try
             {
                 mServer.Connect("*");
@@ -53,11 +53,11 @@ namespace ASStoredProcs
 
         public static void AssignMDXExpression(string subCube, string expressionToAssign)
         {
-            Server mServer;
+            Microsoft.AnalysisServices.Server mServer;
             Database mDB;
             Cube mCube;
             MdxScript mMdxScript;
-            mServer = new Server();
+            mServer = new Microsoft.AnalysisServices.Server();
             try
             {
                 mServer.Connect("*");

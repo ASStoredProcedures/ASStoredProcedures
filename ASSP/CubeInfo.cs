@@ -27,8 +27,9 @@ namespace ASStoredProcs
     public class CubeInfo
     {
         //the assembly must be registered with unrestricted permissions for this function to succeed
-        public static DateTime GetCubeLastProcessedDate() {
-            Server oServer = new Server();
+        public static DateTime GetCubeLastProcessedDate()
+        {
+            Microsoft.AnalysisServices.Server oServer = new Microsoft.AnalysisServices.Server();
             oServer.Connect("Data Source=" + Context.CurrentServerID);
             DateTime dtTemp = oServer.Databases.GetByName(Context.CurrentDatabaseName).Cubes.GetByName(Context.CurrentCube.Name).LastProcessed;
             oServer.Disconnect();

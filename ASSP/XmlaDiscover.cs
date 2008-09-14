@@ -303,7 +303,7 @@ namespace ASStoredProcs
         {
             // only way to get a DatabaseID from a Database name appears to be to use AMO
             string dbId = "";
-            Microsoft.AnalysisServices.Server svr = new Server();
+            Microsoft.AnalysisServices.Server svr = new Microsoft.AnalysisServices.Server();
             using (svr)
             {
                 svr.Connect(Context.CurrentServerID);
