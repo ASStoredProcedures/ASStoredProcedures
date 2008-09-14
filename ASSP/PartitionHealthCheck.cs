@@ -44,9 +44,9 @@ namespace ASStoredProcs
             
             string overlapText;
             bool notFirstDim = false;
-            
 
-            Server server = new Server();
+
+            Microsoft.AnalysisServices.Server server = new Microsoft.AnalysisServices.Server();
             server.Connect("*");
             Database db = server.Databases.GetByName(Context.CurrentDatabaseName);
             Cube cube = db.Cubes.GetByName(cubeName);

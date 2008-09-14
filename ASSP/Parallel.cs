@@ -107,7 +107,7 @@ namespace ASStoredProcs
             try
             {
                 info = (ParallelQueryThreadInfo)o;
-                AdomdConnection conn = new AdomdConnection(info.connectionString);
+                Microsoft.AnalysisServices.AdomdClient.AdomdConnection conn = new Microsoft.AnalysisServices.AdomdClient.AdomdConnection(info.connectionString);
                 conn.Open();
                 try
                 {
