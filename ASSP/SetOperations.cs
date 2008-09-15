@@ -166,6 +166,31 @@ namespace ASStoredProcs
             return sb.ToSet();
         }
 
+        public decimal RatioToParent(Set axis, Expression exp)
+        {
+            Hierarchy h = null;
+
+            // Iterate over all hierarchies in the set
+            int cHier = axis.Hierarchies.Count;
+            int iHier;
+            for (iHier = cHier - 1; iHier >= 0; iHier--)
+            {
+                h = axis.Hierarchies[iHier];
+                // and find the hierarchy where the current member is not yet at the highest possible level
+                if (h.CurrentMember.ParentLevel.LevelNumber > 0)
+                    break;
+            }
+
+            // If there were no such hierarchy found - report ratio of 100%
+            if (h == null || iHier < 0)
+                return 1;
+
+            // Since current member in this hierarchy is not yet at the highest level, we can safely call .Parent
+            TupleBuilder tb = new TupleBuilder(h.CurrentMember.Parent);
+            // and divide value at current cell by the value of its parent
+            return (decimal)exp.Calculate(null) / (decimal)exp.Calculate(tb.ToTuple());
+        }
+
         #region Internal Sorting Classes
         private class TupleValue : System.IComparable<TupleValue>
         {
