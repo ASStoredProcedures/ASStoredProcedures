@@ -77,3 +77,30 @@ select [Measures].[Internet Sales Amount] on 0,
 ASSP.[Order]([Product].[Category].[Category].MEMBERS,[Measures].[Internet Sales Amount],true) on 1
 from [Adventure Works]
 
+// RatioToParent Example
+WITH 
+  MEMBER Measures.SalesRatioToParent AS 
+    IIF
+    (
+      IsEmpty([Measures].[Sales Amount])
+     ,null
+     ,ASSP.ASStoredProcs.SetOperations.RatioToParent
+      (
+        Axis(1).Item(0)
+       ,[Measures].[Sales Amount]
+      )
+    )
+   ,FORMAT_STRING = 'Percent'
+   ,NON_EMPTY_BEHAVIOR = [Measures].[Sales Amount]
+SELECT 
+  {
+    [Measures].[Sales Amount]
+   ,[Measures].[SalesRatioToParent]
+  } ON 0
+ ,NON EMPTY 
+    (
+      [Promotion].[Promotion Category].MEMBERS
+     ,[Product].[Category].MEMBERS
+     ,[Sales Territory].[Sales Territory].MEMBERS
+    ) ON 1
+FROM [Adventure Works];
