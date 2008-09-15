@@ -1,11 +1,24 @@
 --Returns the uniquename of the currentmember on every attribute hierarchy of every dimension
---in a comma-delimited list
+--in list with each unique name one a new line.
 WITH
   MEMBER MEASURES.TEST AS ASSP.FindCurrentMember()
 SELECT 
   MEASURES.TEST ON 0,
   [Date].[Day of Week].MEMBERS ON 1
 FROM [Adventure Works];
+
+--Returns the uniquename of the currentmember on every attribute hierarchy of every dimension
+--in a comma-delimited list
+WITH 
+  CELL CALCULATION [test] FOR '(Measures.AllMembers)' AS  ASSP.FindCurrentMember(", ") 
+SELECT 
+  [Measures].[Internet Sales Amount] ON COLUMNS ,
+  [Date].[Calendar Year].[Calendar Year].MEMBERS ON ROWS
+FROM
+  [Adventure Works]
+WHERE([Product].[Category].&[1]);
+
+
 
 
 -- FindCurrentTuple(). This does pretty much the same as the other functions in the 
@@ -23,3 +36,5 @@ SELECT
 FROM
   [Adventure Works]
 WHERE([Product].[Category].&[1]);
+
+

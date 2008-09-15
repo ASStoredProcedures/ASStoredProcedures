@@ -93,3 +93,43 @@ FROM [Adventure Works]
 WHERE ASSP.AsymmetricSet([Customer].[Marital Status].[Married]
 						,[Customer].[Occupation].[Clerical]
 						,[Customer].[Occupation].&[Manual]); 
+
+SELECT 
+  {
+  [Measures].[Internet Order Count]
+  ,[Measures].[Sales Amount]
+  } ON COLUMNS
+  ,ASSP.AsymmetricSet([Customer].[Marital Status].[Married]
+								,[Customer].[Occupation].[Clerical]
+								,[Customer].[Occupation].&[Manual]
+								,[Customer].[Occupation].[Professional]
+								,[Customer].[Education].&[High School]
+								,[Customer].[Education].&[Bachelors]) ON ROWS
+FROM [Adventure Works];
+
+// Using set parameters
+SELECT 
+  {
+  [Measures].[Internet Order Count]
+  ,[Measures].[Sales Amount]
+  } ON COLUMNS
+  ,ASSP.AsymmetricSet({[Customer].[Occupation].[Clerical]
+							,[Customer].[Occupation].&[Manual]
+							,[Customer].[Occupation].[Professional]}
+						,{[Customer].[Education].&[High School]
+							,[Customer].[Education].&[Bachelors]}) ON ROWS
+FROM [Adventure Works];
+
+// Using a mix of members and sets
+SELECT 
+  {
+  [Measures].[Internet Order Count]
+  ,[Measures].[Sales Amount]
+  } ON COLUMNS
+  ,ASSP.AsymmetricSet([Customer].[Marital Status].[Married]
+								,{[Customer].[Occupation].[Clerical]
+								  ,[Customer].[Occupation].&[Manual]
+								  ,[Customer].[Occupation].[Professional]}
+								,{[Customer].[Education].&[High School]
+								  ,[Customer].[Education].&[Bachelors]}) ON ROWS
+FROM [Adventure Works];
