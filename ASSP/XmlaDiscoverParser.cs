@@ -175,7 +175,8 @@ namespace ASStoredProcs
                 {
                     if (innerNode.Name == "ID" )
                     {
-                        dt.Columns.Add(myNode.Name + "ID");
+                        // added underscore "Parent" to prevent name clashes.
+                        dt.Columns.Add("Parent" + myNode.Name + "ID");
                     }
                     //TODO - coonverting the .Contains call to BinarySearch would 
                     //       allow for the injection of a custom implementation of IComparer
@@ -205,7 +206,7 @@ namespace ASStoredProcs
                 {
                     if (innerNode.Name == "ID")
                     {
-                        colIdx = dt.Columns.IndexOf(myNode.Name + "ID");
+                        colIdx = dt.Columns.IndexOf("Parent" + myNode.Name + "ID");
                         if (colIdx > -1)
                         {
                             data[colIdx] = innerNode.FirstChild.Value;
