@@ -51,9 +51,8 @@ namespace ASStoredProcs.DMVParser.Tokenizer
                 case ')':
                 case '[':
                 case ']':
-            
-                // add commas to their own token
-                case ',':
+                case '=': // an equals sign that is not inside string quotes should trigger a new token
+                case ',': // add commas to their own token
        
                     if (token.Length > 0)
                     {
