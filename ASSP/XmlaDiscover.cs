@@ -77,29 +77,44 @@ namespace ASStoredProcs
         [SafeToPrepare(true)]
         public DataTable DiscoverXmlMetadataFull(string path)
         {
-            return DiscoverXmlMetadataFull(path, "");
+            return DiscoverXmlMetadataFull(path, "","");
         }
 
         [SafeToPrepare(true)]
-        public DataTable DiscoverXmlMetadataFull(string path, string restrictions)
+        public DataTable DiscoverXmlMetadataFull(string path,string whereClause)
+        {
+            return DiscoverXmlMetadataFull(path,whereClause, "");
+        }
+
+        [SafeToPrepare(true)]
+        public DataTable DiscoverXmlMetadataFull(string path, string whereClause, string restrictions)
         {
             XmlaClient xmlac = createXmlaClientAndConnect();
             string xmlaResult;
-            xmlac.Discover("DISCOVER_XML_METADATA", restrictions, "", out xmlaResult, false, false, false);
+            string properties = "";
+            if (Context.ExecuteForPrepare)
+            {
+                properties = "<Content>Schema</Content>";
+            }
+            xmlac.Discover("DISCOVER_XML_METADATA", restrictions, properties, out xmlaResult, false, false, false);
             XmlaDiscoverParser dp = new XmlaDiscoverParser();
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xmlaResult);
-            return dp.Parse(doc, path, Context.ExecuteForPrepare);
+            return dp.Parse(doc, path, Context.ExecuteForPrepare , whereClause);
         }
 
         [SafeToPrepare(true)]
         public DataTable DiscoverXmlMetadata(string path)
         {
-            return DiscoverXmlMetadata(path, "");
+            return DiscoverXmlMetadata(path, "", "");
         }
-
         [SafeToPrepare(true)]
-        public DataTable DiscoverXmlMetadata(string path, string restrictions)
+        public DataTable DiscoverXmlMetadata(string path, string whereClause)
+        {
+            return DiscoverXmlMetadata(path, whereClause, "");
+        }
+        [SafeToPrepare(true)]
+        public DataTable DiscoverXmlMetadata(string path, string whereClause, string restrictions)
         {
             if (restrictions.Contains("DatabaseID"))
             {
@@ -107,7 +122,7 @@ namespace ASStoredProcs
             }
             restrictions = "<DatabaseID>" + GetDatabaseIDFromName(Context.CurrentDatabaseName) + "</DatabaseID>";
 
-            return DiscoverXmlMetadataFull(path, restrictions);
+            return DiscoverXmlMetadataFull(path, whereClause, restrictions);
         }
 
 #endregion
@@ -116,8 +131,7 @@ namespace ASStoredProcs
 
         private string GetDatabaseIDFromName(string databaseName)
         {
-            //TODO
-            DataTable dt = DiscoverXmlMetadataFull(@"\Server\Databases\Database","<ObjectExpansion>ExpandObject</ObjectExpansion>");
+            DataTable dt = DiscoverXmlMetadataFull(@"\Server\Databases\Database","","<ObjectExpansion>ExpandObject</ObjectExpansion>");
             DataRow[] dr = dt.Select("Name='" + Context.CurrentDatabaseName + "'");
             string databaseID = (string)dr[0].ItemArray[dt.Columns.IndexOf("ID")];
             return databaseID;
@@ -257,10 +271,27 @@ namespace ASStoredProcs
 
                 if (dt.Columns.Contains(e.LocalName))
                 {
-                    dr[e.LocalName] = e.InnerText;
+                    dr[e.LocalName] = getNodeText(e);
                 }
             }
             dt.Rows.Add(dr);
+        }
+
+        private string getNodeText(XmlNode e)
+        {
+            if (e.ChildNodes.Count == 1 && e.FirstChild.LocalName == "Object")
+            {
+                StringBuilder sb = new StringBuilder();
+                foreach (XmlNode ids in e.FirstChild.ChildNodes)
+                {
+                    sb.Append(ids.LocalName);
+                    sb.Append("=");
+                    sb.Append(ids.InnerText);
+                    sb.Append(";");
+                }
+                return sb.ToString();
+            }
+            return e.InnerText;
         }
 #endregion
 
