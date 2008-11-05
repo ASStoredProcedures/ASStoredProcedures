@@ -44,7 +44,7 @@ namespace ASStoredProcs
             set { mfilter = value; }
         }
 
-        public DataTable Parse(XmlDocument doc, string filter, bool prepareOnly)
+        public DataTable Parse(XmlDocument doc, string filter, bool prepareOnly, string whereClause)
         {
             DiscoverQuery dq;
             DataTable dt = new DataTable();
@@ -160,6 +160,11 @@ namespace ASStoredProcs
                 dt.Rows.Add(dr);
             }
 
+            if (whereClause.Length > 0)
+            {
+                dt.DefaultView.RowFilter = whereClause;
+                dt = dt.DefaultView.ToTable();
+            }
             return dt;
         }
 
