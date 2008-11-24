@@ -1346,7 +1346,7 @@ namespace ASStoredProcs
                         sQuery.AppendLine("select *");
                         sQuery.AppendLine("from (");
                         sQuery.AppendLine(oTable.ExtendedProperties["QueryDefinition"].ToString());
-                        sQuery.AppendLine(") x");
+                        sQuery.Append(") as [").Append(oTable.ExtendedProperties["FriendlyName"].ToString()).AppendLine("]");
                     }
                     else
                     {
