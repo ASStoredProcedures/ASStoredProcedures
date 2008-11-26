@@ -170,22 +170,31 @@ namespace ASStoredProcs
         }
 
         /// <summary>
-        /// This method is modified to not count more than once the largest values in the priority queue
+        /// This method is modified to not count more than once the smallest values in the priority queue
         /// so that you can allow ties at the end.
         /// </summary>
         public int CountWithoutTies
         {
             get
             {
-                int iTies = 0;
-                for (int i = 1; i < InnerList.Count; i++)
-                {
-                    //loop so see if there are any ties with the lowest value
-                    if (OnCompare(i, 0) == 0)
-                        iTies++;
-                }
-                return InnerList.Count - iTies;
+                return InnerList.Count - RecurseAndCountNumberOfTies(0);
             }
+        }
+
+        //this priority queue is implemented as a tree, so you can recurse and only search until you hit values higher than the lowest value
+        //http://nova.umuc.edu/~jarc/idsv/lesson2.html
+        private int RecurseAndCountNumberOfTies(int iIndex)
+        {
+            int iTies = 0;
+            if (iIndex * 2 + 1 < InnerList.Count && OnCompare(iIndex * 2 + 1, 0) == 0)
+            {
+                iTies += 1 + RecurseAndCountNumberOfTies(iIndex * 2 + 1);
+            }
+            if (iIndex * 2 + 2 < InnerList.Count && OnCompare(iIndex * 2 + 2, 0) == 0)
+            {
+                iTies += 1 + RecurseAndCountNumberOfTies(iIndex * 2 + 2);
+            }
+            return iTies;
         }
 
         public int Count
@@ -195,7 +204,7 @@ namespace ASStoredProcs
                 return InnerList.Count;
             }
         }
-        
+
         IEnumerator IEnumerable.GetEnumerator()
         {
             return InnerList.GetEnumerator();
