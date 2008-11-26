@@ -104,3 +104,29 @@ SELECT
      ,[Sales Territory].[Sales Territory].MEMBERS
     ) ON 1
 FROM [Adventure Works];
+
+
+go
+
+
+--TopCountWithTies/BottomCountWithTies examples
+select [Measures].[Internet Order Count] on 0,
+bottomcount(nonempty([Product].[Product Categories].[Product].members,[Measures].[Internet Order Count]),8,[Measures].[Internet Order Count]) on 1
+from [Adventure Works]
+-- returns 9 rows
+go
+select [Measures].[Internet Order Count] on 0,
+ASSP.BottomCountWithTies(
+nonempty([Product].[Product Categories].[Product].members,[Measures].[Internet Order Count]),8,[Measures].[Internet Order Count]) on 1
+from [Adventure Works]
+-- returns 10 rows
+go
+select [Measures].[Internet Order Count] on 0,
+topcount( [Product].[Product Categories].[Product].members ,62,[Measures].[Internet Order Count]) on 1
+from [Adventure Works]
+-- returns 63 rows
+go
+select [Measures].[Internet Order Count] on 0,
+ASSP.TopCountWithTies( [Product].[Product Categories].[Product].members ,62,[Measures].[Internet Order Count]) on 1
+from [Adventure Works]
+-- returns 64 rows
