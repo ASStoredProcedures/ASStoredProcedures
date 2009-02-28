@@ -59,6 +59,7 @@
     <Compile Include="CubeInfo.cs" />
     <Compile Include="DimensionHealthCheck.cs" />
     <Compile Include="EfficientToDate.cs" />
+    <Compile Include="FileSystemCache.cs" />
     <Compile Include="FindCurrentMember.cs" />
     <Compile Include="LinkMember.cs" />
     <Compile Include="ListFunctions.cs" />
@@ -92,6 +93,7 @@
   <ItemGroup>
     <None Include="MDX\AsymmetricSet Example MDX Queries.mdx" />
     <None Include="MDX\ClusterNaming Examples.dmx" />
+    <None Include="MDX\FileSystemCache Example MDX Queries.mdx" />
     <None Include="MDX\CubeInfo Example MDX Queries.mdx" />
     <None Include="MDX\Dimension Health Check Example Queries.mdx" />
     <None Include="MDX\DMV Example MDX.mdx" />
