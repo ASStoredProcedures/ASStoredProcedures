@@ -166,7 +166,7 @@ namespace ASStoredProcs
         {
             Context.CheckCancelled(); // Check if the user has cancelled 
 
-            Boolean caseSensitive = (opt | RegexOptions.IgnoreCase) == RegexOptions.IgnoreCase;
+            Boolean caseSensitive = (opt & RegexOptions.IgnoreCase) == RegexOptions.IgnoreCase;
             RegExCacheIndex ri = new RegExCacheIndex(pattern, caseSensitive);
 
             if (regExCache.ContainsKey(ri))
