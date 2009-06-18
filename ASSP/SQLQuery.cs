@@ -25,7 +25,7 @@ namespace ASSP
     {
         public static DataTable ExecuteSQL(string connectionString, string sql)
         {
-            OleDbConnection conn = new OleDbConnection(connectionString + ";ReadOnly=1");
+            OleDbConnection conn = new OleDbConnection(connectionString);
             
             DataTable dt = new DataTable("Results");
             OleDbDataAdapter da = new OleDbDataAdapter(sql, conn);
