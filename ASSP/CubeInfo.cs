@@ -36,5 +36,15 @@ namespace ASStoredProcs
             return dtTemp;
             //return Context.CurrentCube.LastProcessed; //this doesn't work because of a bug: https://connect.microsoft.com/SQLServer/feedback/ViewFeedback.aspx?FeedbackID=124606
         }
+
+        public static DateTime GetMeasureGroupLastProcessedDate(string MeasureGroupName)
+        {
+            Microsoft.AnalysisServices.Server oServer = new Microsoft.AnalysisServices.Server();
+            oServer.Connect("Data Source=" + Context.CurrentServerID);
+            DateTime dtTemp = oServer.Databases.GetByName(Context.CurrentDatabaseName).Cubes.GetByName(Context.CurrentCube.Name).MeasureGroups.GetByName(MeasureGroupName).LastProcessed;
+            oServer.Disconnect();
+            return dtTemp;
+            //return Context.CurrentCube.LastProcessed; //this doesn't work because of a bug: https://connect.microsoft.com/SQLServer/feedback/ViewFeedback.aspx?FeedbackID=124606
+        }
     }
 }
