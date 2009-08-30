@@ -127,6 +127,70 @@ namespace ASStoredProcs
 
 #endregion
 
+#region DiscoverSingleValue Functions
+
+        public object DiscoverSingleValue(string column, string request)
+        {
+            return GetSingleValueFromDataTable(column, Discover(request));
+        }
+
+        public object DiscoverSingleValue(string column, string request, string restrictions)
+        {
+            return GetSingleValueFromDataTable(column, Discover(request, restrictions));
+        }
+
+        public object DiscoverSingleValue(string column, string request, string restrictions, string properties)
+        {
+            return GetSingleValueFromDataTable(column, Discover(request, restrictions, properties));
+        }
+
+        public object DiscoverXmlMetadataFullSingleValue(string column, string path)
+        {
+            return GetSingleValueFromDataTable(column, DiscoverXmlMetadataFull(path));
+        }
+
+        public object DiscoverXmlMetadataFullSingleValue(string column, string path, string whereClause)
+        {
+            return GetSingleValueFromDataTable(column, DiscoverXmlMetadataFull(path, whereClause));
+        }
+
+        public object DiscoverXmlMetadataFullSingleValue(string column, string path, string whereClause, string restrictions)
+        {
+            return GetSingleValueFromDataTable(column, DiscoverXmlMetadataFull(path, whereClause, restrictions));
+        }
+
+        public object DiscoverXmlMetadataSingleValue(string column, string path)
+        {
+            return GetSingleValueFromDataTable(column, DiscoverXmlMetadata(path));
+        }
+
+        public object DiscoverXmlMetadataSingleValue(string column, string path, string whereClause)
+        {
+            return GetSingleValueFromDataTable(column, DiscoverXmlMetadata(path, whereClause));
+        }
+
+        public object DiscoverXmlMetadataSingleValue(string column, string path, string whereClause, string restrictions)
+        {
+            return GetSingleValueFromDataTable(column, DiscoverXmlMetadata(path, whereClause, restrictions));
+        }
+
+        public object DMVSingleValue(string column, string discoverRowset)
+        {
+            return GetSingleValueFromDataTable(column, DMV(discoverRowset));
+        }
+
+        public object DMVSingleValue(string column, string discoverRowset, string restrictions)
+        {
+            return GetSingleValueFromDataTable(column, DMV(discoverRowset, restrictions));
+        }
+
+        public object DMVSingleValue(string column, string discoverRowset, string restrictions, string properties)
+        {
+            return GetSingleValueFromDataTable(column, DMV(discoverRowset, restrictions, properties));
+        }
+
+#endregion
+
 #region Private Helper Functions
 
         private string GetDatabaseIDFromName(string databaseName)
@@ -292,6 +356,18 @@ namespace ASStoredProcs
                 return sb.ToString();
             }
             return e.InnerText;
+        }
+
+        private object GetSingleValueFromDataTable(string column, DataTable table)
+        {
+            if (table == null || table.Rows.Count == 0 || !table.Columns.Contains(column))
+            {
+                return null;
+            }
+            else
+            {
+                return table.Rows[0][column];
+            }
         }
 #endregion
 

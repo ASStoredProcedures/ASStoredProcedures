@@ -58,6 +58,7 @@
     <Compile Include="ClusterNaming.cs" />
     <Compile Include="CubeInfo.cs" />
     <Compile Include="DimensionHealthCheck.cs" />
+    <Compile Include="Drillthrough.cs" />
     <Compile Include="EfficientToDate.cs" />
     <Compile Include="FileSystemCache.cs" />
     <Compile Include="FindCurrentMember.cs" />
@@ -96,6 +97,7 @@
     <None Include="MDX\FileSystemCache Example MDX Queries.mdx" />
     <None Include="MDX\CubeInfo Example MDX Queries.mdx" />
     <None Include="MDX\Dimension Health Check Example Queries.mdx" />
+    <None Include="MDX\DiscoverSingleValue Example MDX.mdx" />
     <None Include="MDX\DMV Example MDX.mdx" />
     <None Include="MDX\EfficientToDate Example MDX Queries.mdx" />
     <None Include="MDX\FindCurrentMember Example MDX Query.mdx" />
