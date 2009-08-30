@@ -1,0 +1,35 @@
+with member test as 
+ASSP.DiscoverSingleValue("DIMENSION_CARDINALITY", "MDSCHEMA_DIMENSIONS","<CUBE_NAME>Channel Sales</CUBE_NAME><DIMENSION_NAME>Employee</DIMENSION_NAME>","<CATALOG>Adventure Works DW 2008</CATALOG>")
+select test on 0
+from [Adventure Works]
+
+GO
+
+with member test as 
+ASSP.discoverXmlMetaDataFullSingleValue("Version", "\Server|ID,Version")
+select test on 0
+from [Adventure Works]
+
+GO
+
+with member test as 
+ASSP.discoverXmlMetaDataSingleValue("EstimatedSize", "\Database")
+select test on 0
+from [Adventure Works]
+
+GO
+
+with member test as 
+ASSP.DMVSingleValue(
+ "DIMENSION_CARDINALITY"
+ ,"SELECT DIMENSION_ORDINAL
+ , DIMENSION_NAME
+ , DIMENSION_CARDINALITY
+ , DEFAULT_HIERARCHY
+  FROM $SYSTEM.MDSCHEMA_DIMENSIONS
+ WHERE CUBE_NAME = 'Direct Sales'
+ and DIMENSION_NAME = 'Sales Territory'
+ ORDER BY DIMENSION_ORDINAL"
+)
+select test on 0
+from [Adventure Works]
