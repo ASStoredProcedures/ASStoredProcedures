@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASSP2008", "ASSP2008.csproj
 EndProject
 Project("{F14B399A-7131-4C87-9E4B-1186C45EF12D}") = "ASSP Reports 2008", "..\ASSP Reports\ASSP Reports 2008.rptproj", "{B1D1A38E-4106-49E2-BE6B-4933E000AFC0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLQuery2008", "..\SQLQuery\SQLQuery2008.csproj", "{F6B65BCC-5C04-400C-89E6-72338D774662}"
+EndProject
 Global
 	GlobalSection(TeamFoundationVersionControl) = preSolution
 		SccNumberOfProjects = 3
@@ -42,6 +44,14 @@ Global
 		{B1D1A38E-4106-49E2-BE6B-4933E000AFC0}.Release|Any CPU.ActiveCfg = Production
 		{B1D1A38E-4106-49E2-BE6B-4933E000AFC0}.Release|Any CPU.Build.0 = Production
 		{B1D1A38E-4106-49E2-BE6B-4933E000AFC0}.Release|Any CPU.Deploy.0 = Production
+		{F6B65BCC-5C04-400C-89E6-72338D774662}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6B65BCC-5C04-400C-89E6-72338D774662}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6B65BCC-5C04-400C-89E6-72338D774662}.DebugLocal|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6B65BCC-5C04-400C-89E6-72338D774662}.DebugLocal|Any CPU.Build.0 = Debug|Any CPU
+		{F6B65BCC-5C04-400C-89E6-72338D774662}.Production|Any CPU.ActiveCfg = Release|Any CPU
+		{F6B65BCC-5C04-400C-89E6-72338D774662}.Production|Any CPU.Build.0 = Release|Any CPU
+		{F6B65BCC-5C04-400C-89E6-72338D774662}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6B65BCC-5C04-400C-89E6-72338D774662}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

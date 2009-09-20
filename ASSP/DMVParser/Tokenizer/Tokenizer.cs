@@ -25,7 +25,7 @@ namespace ASStoredProcs.DMVParser.Tokenizer
     internal class Tokenizer
     {
         List<Token> mTokens = new List<Token>();
-        public Tokenizer(string statement)
+        internal Tokenizer(string statement)
         {
 
             char currChar;
