@@ -122,6 +122,15 @@ namespace ASStoredProcs
                                 dt.Columns.Add(new DataColumn(fld.Name));
                             }
                         }
+
+                        // Add attributes from last node
+                        if (n.Attributes.Count > 0)
+                        {
+                            foreach (XmlAttribute xa in n.Attributes)
+                            {
+                                dt.Columns.Add(n.LocalName + "." + xa.LocalName);
+                            }
+                        }
                         addParentIdColumns(dq, dt, n);
                         tableBuilt = true;
                         // If this is a prepare call, we only need to return an empty table
@@ -147,7 +156,6 @@ namespace ASStoredProcs
                         && (fld.HasChildNodes && fld.ChildNodes.Count == 1))
                     {
                         data[dr.Table.Columns.IndexOf(fld.Name)] = fld.FirstChild.InnerText;
-
                     }
                     addParentIdValues(dq, dt, data, fld);
                 }
@@ -155,6 +163,15 @@ namespace ASStoredProcs
                 {
                     // we have found a empty node, just add any ancestor fields
                     addParentIdValues(dq, dt, data, n);
+                }
+
+                // Extract Attributes
+                if (n.Attributes.Count > 0)
+                {
+                    foreach (XmlAttribute xa in n.Attributes)
+                    {
+                        data[dr.Table.Columns.IndexOf(n.LocalName + "." + xa.LocalName)] = xa.Value;
+                    }
                 }
                 dr.ItemArray = data;
                 dt.Rows.Add(dr);
@@ -237,6 +254,7 @@ namespace ASStoredProcs
         private class xmlaElement
         {
             private List<string> mFields;
+            private List<string> mAttributes;
             private string mName;
             private int mFieldCount;
             private LinkedList<xmlaElement> mParentList;
@@ -248,13 +266,21 @@ namespace ASStoredProcs
                 chunks = element.Split("|".ToCharArray());
                 mName = chunks[0];
                 mFields = new List<string>();
+                mAttributes = new List<string>();
                 mFieldCount = chunks.Length;
                 if (mFieldCount > 1)
                 {
                     string[] fldList = chunks[1].Split(",".ToCharArray());
                     for (int i = 0; i < fldList.Length; i++)
                     {
-                        mFields.Add(fldList[i].Trim());
+                        if (fldList[i].StartsWith("@"))
+                        {
+                            mAttributes.Add(fldList[i].Substring(1).Trim());
+                        }
+                        else
+                        {
+                            mFields.Add(fldList[i].Trim());
+                        }
                     }
                 }
             }
@@ -269,10 +295,15 @@ namespace ASStoredProcs
                 get { return mFields; }
             }
 
-            public int FieldCount
+            public List<string> Attributes
             {
-                get { return mFieldCount; }
+                get { return mAttributes;}
             }
+
+            //public int FieldCount
+            //{
+            //    get { return mFieldCount; }
+            //}
 
             public xmlaElement Next
             {
