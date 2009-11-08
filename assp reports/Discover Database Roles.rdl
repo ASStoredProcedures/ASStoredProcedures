@@ -2,13 +2,11 @@
 <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2005/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
   <DataSources>
     <DataSource Name="Discover Reports">
-      <DataSourceReference>Discover Reports</DataSourceReference>
       <rd:DataSourceID>03521f12-73aa-463d-b247-64caa1d77e5c</rd:DataSourceID>
+      <DataSourceReference>Discover Reports</DataSourceReference>
     </DataSource>
   </DataSources>
-  <BottomMargin>2.5cm</BottomMargin>
-  <RightMargin>2.5cm</RightMargin>
-  <PageWidth>21cm</PageWidth>
+  <InteractiveHeight>29.7cm</InteractiveHeight>
   <ReportParameters>
     <ReportParameter Name="DatabaseId">
       <DataType>String</DataType>
@@ -27,6 +25,130 @@
   <InteractiveWidth>21cm</InteractiveWidth>
   <rd:GridSpacing>0.25cm</rd:GridSpacing>
   <rd:SnapToGrid>true</rd:SnapToGrid>
+  <RightMargin>2.5cm</RightMargin>
+  <LeftMargin>2.5cm</LeftMargin>
+  <PageHeader>
+    <PrintOnFirstPage>true</PrintOnFirstPage>
+    <ReportItems>
+      <Textbox Name="textbox18">
+        <rd:DefaultName>textbox18</rd:DefaultName>
+        <Width>19.25cm</Width>
+        <Style>
+          <Color>SteelBlue</Color>
+          <FontSize>18pt</FontSize>
+          <FontWeight>700</FontWeight>
+          <PaddingLeft>2pt</PaddingLeft>
+          <PaddingRight>2pt</PaddingRight>
+          <PaddingTop>2pt</PaddingTop>
+          <PaddingBottom>2pt</PaddingBottom>
+        </Style>
+        <CanGrow>true</CanGrow>
+        <Value>= "ASSP Database Role Report for " &amp; Parameters!DatabaseId.Label</Value>
+      </Textbox>
+    </ReportItems>
+    <Height>1cm</Height>
+    <PrintOnLastPage>true</PrintOnLastPage>
+  </PageHeader>
+  <BottomMargin>2.5cm</BottomMargin>
+  <rd:ReportID>2ce44f74-d141-4059-842a-fe07f9d923e4</rd:ReportID>
+  <PageWidth>21cm</PageWidth>
+  <DataSets>
+    <DataSet Name="dsDatabases">
+      <Fields>
+        <Field Name="Name">
+          <DataField>Name</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="ID">
+          <DataField>ID</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="CreatedTimestamp">
+          <DataField>CreatedTimestamp</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="LastSchemaUpdate">
+          <DataField>LastSchemaUpdate</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="LastProcessed">
+          <DataField>LastProcessed</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="State">
+          <DataField>State</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="LastUpdate">
+          <DataField>LastUpdate</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="ServerID">
+          <DataField>ServerID</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+      </Fields>
+      <Query>
+        <DataSourceName>Discover Reports</DataSourceName>
+        <CommandText>CALL ASSP.DiscoverXmlMetadataFull("\Databases\Database","","&lt;ObjectExpansion&gt;ExpandObject&lt;/ObjectExpansion&gt;")</CommandText>
+        <rd:UseGenericDesigner>true</rd:UseGenericDesigner>
+      </Query>
+    </DataSet>
+    <DataSet Name="dsPermissions">
+      <Fields>
+        <Field Name="AttributeID">
+          <DataField>AttributeID</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DefaultMember">
+          <DataField>DefaultMember</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="AllowedSet">
+          <DataField>AllowedSet</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DeniedSet">
+          <DataField>DeniedSet</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="VisualTotals">
+          <DataField>VisualTotals</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DimensionPermissionID">
+          <DataField>DimensionPermissionID</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DimensionPermissionRoleID">
+          <DataField>DimensionPermissionRoleID</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DimensionName">
+          <DataField>DimensionName</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DimensionID">
+          <DataField>DimensionID</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="DatabaseID">
+          <DataField>DatabaseID</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+        <Field Name="ServerID">
+          <DataField>ServerID</DataField>
+          <rd:TypeName>System.String</rd:TypeName>
+        </Field>
+      </Fields>
+      <Query>
+        <DataSourceName>Discover Reports</DataSourceName>
+        <CommandText>="call assp.discoverxmlmetadatafull(""\Database\Dimensions\Dimension|Name\DimensionPermissions\DimensionPermission|RoleID\AttributePermissions\AttributePermission"", """", ""&lt;DatabaseID&gt;"  &amp; Parameters!DatabaseId.Value &amp; "&lt;/DatabaseID&gt;"")"</CommandText>
+        <rd:UseGenericDesigner>true</rd:UseGenericDesigner>
+      </Query>
+    </DataSet>
+  </DataSets>
+  <Width>22.70548cm</Width>
   <Body>
     <ColumnSpacing>1cm</ColumnSpacing>
     <ReportItems>
@@ -41,12 +163,12 @@
                   <ReportItems>
                     <Image Name="image1">
                       <Sizing>Clip</Sizing>
-                      <ZIndex>14</ZIndex>
                       <Source>External</Source>
                       <Style>
                         <PaddingLeft>2pt</PaddingLeft>
                         <PaddingTop>2pt</PaddingTop>
                       </Style>
+                      <ZIndex>14</ZIndex>
                       <Value>Role.gif</Value>
                     </Image>
                   </ReportItems>
@@ -54,19 +176,20 @@
                 <TableCell>
                   <ReportItems>
                     <Rectangle Name="rectangle1">
+                      <ZIndex>13</ZIndex>
                       <ReportItems>
                         <Textbox Name="textbox2">
-                          <Top>0.75cm</Top>
                           <rd:DefaultName>textbox2</rd:DefaultName>
-                          <ZIndex>1</ZIndex>
+                          <Top>0.75cm</Top>
                           <Width>2.53968cm</Width>
                           <Style>
-                            <PaddingLeft>2pt</PaddingLeft>
-                            <PaddingBottom>2pt</PaddingBottom>
                             <FontWeight>700</FontWeight>
+                            <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
                             <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
                           </Style>
+                          <ZIndex>1</ZIndex>
                           <CanGrow>true</CanGrow>
                           <Value>Members:</Value>
                         </Textbox>
@@ -74,18 +197,17 @@
                           <rd:DefaultName>textbox1</rd:DefaultName>
                           <Width>2.53968cm</Width>
                           <Style>
-                            <PaddingLeft>2pt</PaddingLeft>
-                            <PaddingBottom>2pt</PaddingBottom>
                             <FontWeight>700</FontWeight>
+                            <PaddingLeft>2pt</PaddingLeft>
                             <PaddingRight>2pt</PaddingRight>
                             <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
                           </Style>
                           <CanGrow>true</CanGrow>
                           <Height>0.63492cm</Height>
                           <Value>Role:</Value>
                         </Textbox>
                       </ReportItems>
-                      <ZIndex>13</ZIndex>
                     </Rectangle>
                   </ReportItems>
                 </TableCell>
@@ -100,8 +222,8 @@
                           <Value>=Fields!DimensionPermissionRoleID.Value</Value>
                         </Parameter>
                       </Parameters>
-                      <ZIndex>12</ZIndex>
                       <ReportName>Discover Database Roles sub</ReportName>
+                      <ZIndex>12</ZIndex>
                     </Subreport>
                   </ReportItems>
                 </TableCell>
@@ -114,13 +236,13 @@
                   <ReportItems>
                     <Textbox Name="textbox4">
                       <rd:DefaultName>textbox4</rd:DefaultName>
-                      <ZIndex>11</ZIndex>
                       <Style>
                         <PaddingLeft>2pt</PaddingLeft>
-                        <PaddingBottom>2pt</PaddingBottom>
                         <PaddingRight>2pt</PaddingRight>
                         <PaddingTop>2pt</PaddingTop>
+                        <PaddingBottom>2pt</PaddingBottom>
                       </Style>
+                      <ZIndex>11</ZIndex>
                       <CanGrow>true</CanGrow>
                       <Value />
                     </Textbox>
@@ -130,14 +252,14 @@
                   <ReportItems>
                     <Textbox Name="textbox10">
                       <rd:DefaultName>textbox10</rd:DefaultName>
-                      <ZIndex>10</ZIndex>
                       <Style>
-                        <PaddingLeft>2pt</PaddingLeft>
-                        <PaddingBottom>2pt</PaddingBottom>
                         <FontWeight>700</FontWeight>
+                        <PaddingLeft>2pt</PaddingLeft>
                         <PaddingRight>2pt</PaddingRight>
                         <PaddingTop>2pt</PaddingTop>
+                        <PaddingBottom>2pt</PaddingBottom>
                       </Style>
+                      <ZIndex>10</ZIndex>
                       <CanGrow>true</CanGrow>
                       <Value>Dimension:</Value>
                     </Textbox>
@@ -147,13 +269,13 @@
                   <ReportItems>
                     <Textbox Name="DimensionName">
                       <rd:DefaultName>DimensionName</rd:DefaultName>
-                      <ZIndex>9</ZIndex>
                       <Style>
                         <PaddingLeft>2pt</PaddingLeft>
-                        <PaddingBottom>2pt</PaddingBottom>
                         <PaddingRight>2pt</PaddingRight>
                         <PaddingTop>2pt</PaddingTop>
+                        <PaddingBottom>2pt</PaddingBottom>
                       </Style>
+                      <ZIndex>9</ZIndex>
                       <CanGrow>true</CanGrow>
                       <Value>=Fields!DimensionName.Value</Value>
                     </Textbox>
@@ -168,13 +290,13 @@
                   <ReportItems>
                     <Textbox Name="textbox11">
                       <rd:DefaultName>textbox11</rd:DefaultName>
-                      <ZIndex>8</ZIndex>
                       <Style>
                         <PaddingLeft>2pt</PaddingLeft>
-                        <PaddingBottom>2pt</PaddingBottom>
                         <PaddingRight>2pt</PaddingRight>
                         <PaddingTop>2pt</PaddingTop>
+                        <PaddingBottom>2pt</PaddingBottom>
                       </Style>
+                      <ZIndex>8</ZIndex>
                       <CanGrow>true</CanGrow>
                       <Value />
                     </Textbox>
@@ -184,14 +306,14 @@
                   <ReportItems>
                     <Textbox Name="textbox5">
                       <rd:DefaultName>textbox5</rd:DefaultName>
-                      <ZIndex>7</ZIndex>
                       <Style>
-                        <PaddingLeft>2pt</PaddingLeft>
-                        <PaddingBottom>2pt</PaddingBottom>
                         <FontWeight>700</FontWeight>
+                        <PaddingLeft>2pt</PaddingLeft>
                         <PaddingRight>2pt</PaddingRight>
                         <PaddingTop>2pt</PaddingTop>
+                        <PaddingBottom>2pt</PaddingBottom>
                       </Style>
+                      <ZIndex>7</ZIndex>
                       <CanGrow>true</CanGrow>
                       <Value>Allowed Set:</Value>
                     </Textbox>
@@ -201,13 +323,13 @@
                   <ReportItems>
                     <Textbox Name="AllowedSet">
                       <rd:DefaultName>AllowedSet</rd:DefaultName>
-                      <ZIndex>6</ZIndex>
                       <Style>
                         <PaddingLeft>2pt</PaddingLeft>
-                        <PaddingBottom>2pt</PaddingBottom>
                         <PaddingRight>2pt</PaddingRight>
                         <PaddingTop>2pt</PaddingTop>
+                        <PaddingBottom>2pt</PaddingBottom>
                       </Style>
+                      <ZIndex>6</ZIndex>
                       <CanGrow>true</CanGrow>
                       <Value>=Fields!AllowedSet.Value</Value>
                     </Textbox>
@@ -222,13 +344,13 @@
                   <ReportItems>
                     <Textbox Name="textbox12">
                       <rd:DefaultName>textbox12</rd:DefaultName>
-                      <ZIndex>5</ZIndex>
                       <Style>
                         <PaddingLeft>2pt</PaddingLeft>
-                        <PaddingBottom>2pt</PaddingBottom>
                         <PaddingRight>2pt</PaddingRight>
                         <PaddingTop>2pt</PaddingTop>
+                        <PaddingBottom>2pt</PaddingBottom>
                       </Style>
+                      <ZIndex>5</ZIndex>
                       <CanGrow>true</CanGrow>
                       <Value />
                     </Textbox>
@@ -238,14 +360,14 @@
                   <ReportItems>
                     <Textbox Name="textbox6">
                       <rd:DefaultName>textbox6</rd:DefaultName>
-                      <ZIndex>4</ZIndex>
                       <Style>
-                        <PaddingLeft>2pt</PaddingLeft>
-                        <PaddingBottom>2pt</PaddingBottom>
                         <FontWeight>700</FontWeight>
+                        <PaddingLeft>2pt</PaddingLeft>
                         <PaddingRight>2pt</PaddingRight>
                         <PaddingTop>2pt</PaddingTop>
+                        <PaddingBottom>2pt</PaddingBottom>
                       </Style>
+                      <ZIndex>4</ZIndex>
                       <CanGrow>true</CanGrow>
                       <Value>Denied Set:</Value>
                     </Textbox>
@@ -255,13 +377,13 @@
                   <ReportItems>
                     <Textbox Name="DeniedSet">
                       <rd:DefaultName>DeniedSet</rd:DefaultName>
-                      <ZIndex>3</ZIndex>
                       <Style>
                         <PaddingLeft>2pt</PaddingLeft>
-                        <PaddingBottom>2pt</PaddingBottom>
                         <PaddingRight>2pt</PaddingRight>
                         <PaddingTop>2pt</PaddingTop>
+                        <PaddingBottom>2pt</PaddingBottom>
                       </Style>
+                      <ZIndex>3</ZIndex>
                       <CanGrow>true</CanGrow>
                       <Value>=Fields!DeniedSet.Value</Value>
                     </Textbox>
@@ -276,13 +398,13 @@
                   <ReportItems>
                     <Textbox Name="textbox13">
                       <rd:DefaultName>textbox13</rd:DefaultName>
-                      <ZIndex>2</ZIndex>
                       <Style>
                         <PaddingLeft>2pt</PaddingLeft>
-                        <PaddingBottom>2pt</PaddingBottom>
                         <PaddingRight>2pt</PaddingRight>
                         <PaddingTop>2pt</PaddingTop>
+                        <PaddingBottom>2pt</PaddingBottom>
                       </Style>
+                      <ZIndex>2</ZIndex>
                       <CanGrow>true</CanGrow>
                       <Value />
                     </Textbox>
@@ -292,14 +414,14 @@
                   <ReportItems>
                     <Textbox Name="textbox14">
                       <rd:DefaultName>textbox14</rd:DefaultName>
-                      <ZIndex>1</ZIndex>
                       <Style>
-                        <PaddingLeft>2pt</PaddingLeft>
-                        <PaddingBottom>2pt</PaddingBottom>
                         <FontWeight>700</FontWeight>
+                        <PaddingLeft>2pt</PaddingLeft>
                         <PaddingRight>2pt</PaddingRight>
                         <PaddingTop>2pt</PaddingTop>
+                        <PaddingBottom>2pt</PaddingBottom>
                       </Style>
+                      <ZIndex>1</ZIndex>
                       <CanGrow>true</CanGrow>
                       <Value>Default Member:</Value>
                     </Textbox>
@@ -311,9 +433,9 @@
                       <rd:DefaultName>DefaultMember</rd:DefaultName>
                       <Style>
                         <PaddingLeft>2pt</PaddingLeft>
-                        <PaddingBottom>2pt</PaddingBottom>
                         <PaddingRight>2pt</PaddingRight>
                         <PaddingTop>2pt</PaddingTop>
+                        <PaddingBottom>2pt</PaddingBottom>
                       </Style>
                       <CanGrow>true</CanGrow>
                       <Value>=Fields!DefaultMember.Value</Value>
@@ -327,8 +449,8 @@
         </Details>
         <Style>
           <BorderStyle>
-            <Bottom>Solid</Bottom>
             <Top>Solid</Top>
+            <Bottom>Solid</Bottom>
           </BorderStyle>
         </Style>
         <TableColumns>
@@ -347,183 +469,61 @@
     </ReportItems>
     <Height>4.25cm</Height>
   </Body>
-  <PageHeader>
-    <ReportItems>
-      <Textbox Name="textbox18">
-        <rd:DefaultName>textbox18</rd:DefaultName>
-        <Width>19.25cm</Width>
-        <Style>
-          <PaddingLeft>2pt</PaddingLeft>
-          <PaddingBottom>2pt</PaddingBottom>
-          <FontWeight>700</FontWeight>
-          <FontSize>18pt</FontSize>
-          <Color>SteelBlue</Color>
-          <PaddingRight>2pt</PaddingRight>
-          <PaddingTop>2pt</PaddingTop>
-        </Style>
-        <CanGrow>true</CanGrow>
-        <Value>= "ASSP Database Role Report for " &amp; Parameters!DatabaseId.Label</Value>
-      </Textbox>
-    </ReportItems>
-    <Height>1cm</Height>
-    <PrintOnLastPage>true</PrintOnLastPage>
-    <PrintOnFirstPage>true</PrintOnFirstPage>
-  </PageHeader>
-  <rd:ReportID>2ce44f74-d141-4059-842a-fe07f9d923e4</rd:ReportID>
-  <LeftMargin>2.5cm</LeftMargin>
-  <DataSets>
-    <DataSet Name="dsDatabases">
-      <Query>
-        <rd:UseGenericDesigner>true</rd:UseGenericDesigner>
-        <CommandText>CALL ASSP.DiscoverXmlMetadataFull("\Databases\Database","&lt;ObjectExpansion&gt;ExpandObject&lt;/ObjectExpansion&gt;")</CommandText>
-        <DataSourceName>Discover Reports</DataSourceName>
-      </Query>
-      <Fields>
-        <Field Name="Name">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>Name</DataField>
-        </Field>
-        <Field Name="ID">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>ID</DataField>
-        </Field>
-        <Field Name="CreatedTimestamp">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>CreatedTimestamp</DataField>
-        </Field>
-        <Field Name="LastSchemaUpdate">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>LastSchemaUpdate</DataField>
-        </Field>
-        <Field Name="LastProcessed">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>LastProcessed</DataField>
-        </Field>
-        <Field Name="State">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>State</DataField>
-        </Field>
-        <Field Name="LastUpdate">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>LastUpdate</DataField>
-        </Field>
-        <Field Name="ServerID">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>ServerID</DataField>
-        </Field>
-      </Fields>
-    </DataSet>
-    <DataSet Name="dsPermissions">
-      <Query>
-        <rd:UseGenericDesigner>true</rd:UseGenericDesigner>
-        <CommandText>="call assp.discoverxmlmetadatafull(""\Database\Dimensions\Dimension|Name\DimensionPermissions\DimensionPermission|RoleID\AttributePermissions\AttributePermission"", ""&lt;DatabaseID&gt;"  &amp; Parameters!DatabaseId.Value &amp; "&lt;/DatabaseID&gt;"")"</CommandText>
-        <DataSourceName>Discover Reports</DataSourceName>
-      </Query>
-      <Fields>
-        <Field Name="AttributeID">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>AttributeID</DataField>
-        </Field>
-        <Field Name="DefaultMember">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>DefaultMember</DataField>
-        </Field>
-        <Field Name="AllowedSet">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>AllowedSet</DataField>
-        </Field>
-        <Field Name="DeniedSet">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>DeniedSet</DataField>
-        </Field>
-        <Field Name="VisualTotals">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>VisualTotals</DataField>
-        </Field>
-        <Field Name="DimensionPermissionID">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>DimensionPermissionID</DataField>
-        </Field>
-        <Field Name="DimensionPermissionRoleID">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>DimensionPermissionRoleID</DataField>
-        </Field>
-        <Field Name="DimensionName">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>DimensionName</DataField>
-        </Field>
-        <Field Name="DimensionID">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>DimensionID</DataField>
-        </Field>
-        <Field Name="DatabaseID">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>DatabaseID</DataField>
-        </Field>
-        <Field Name="ServerID">
-          <rd:TypeName>System.String</rd:TypeName>
-          <DataField>ServerID</DataField>
-        </Field>
-      </Fields>
-    </DataSet>
-  </DataSets>
-  <Width>22.70548cm</Width>
-  <InteractiveHeight>29.7cm</InteractiveHeight>
   <Language>en-US</Language>
   <PageFooter>
+    <PrintOnFirstPage>true</PrintOnFirstPage>
     <ReportItems>
       <Textbox Name="textbox9">
-        <Left>6.5cm</Left>
         <rd:DefaultName>textbox9</rd:DefaultName>
-        <ZIndex>2</ZIndex>
         <Width>6.75cm</Width>
         <Style>
+          <FontSize>8pt</FontSize>
           <TextAlign>Center</TextAlign>
           <PaddingLeft>2pt</PaddingLeft>
-          <PaddingBottom>2pt</PaddingBottom>
-          <FontSize>8pt</FontSize>
           <PaddingRight>2pt</PaddingRight>
           <PaddingTop>2pt</PaddingTop>
+          <PaddingBottom>2pt</PaddingBottom>
         </Style>
+        <ZIndex>2</ZIndex>
         <CanGrow>true</CanGrow>
+        <Left>6.5cm</Left>
         <Height>0.63492cm</Height>
         <Value>www.codeplex.com/ASStoredProcedures</Value>
       </Textbox>
       <Textbox Name="textbox8">
         <rd:DefaultName>textbox8</rd:DefaultName>
-        <ZIndex>1</ZIndex>
         <Width>5.5cm</Width>
         <Style>
-          <PaddingLeft>2pt</PaddingLeft>
-          <PaddingBottom>2pt</PaddingBottom>
           <FontSize>8pt</FontSize>
+          <PaddingLeft>2pt</PaddingLeft>
           <PaddingRight>2pt</PaddingRight>
           <PaddingTop>2pt</PaddingTop>
+          <PaddingBottom>2pt</PaddingBottom>
         </Style>
+        <ZIndex>1</ZIndex>
         <CanGrow>true</CanGrow>
         <Height>0.63492cm</Height>
         <Value>="Printed: " &amp; Today()</Value>
       </Textbox>
       <Textbox Name="textbox7">
-        <Left>15.75cm</Left>
         <rd:DefaultName>textbox7</rd:DefaultName>
         <Width>3.53968cm</Width>
         <Style>
+          <FontSize>8pt</FontSize>
           <TextAlign>Right</TextAlign>
           <PaddingLeft>2pt</PaddingLeft>
-          <PaddingBottom>2pt</PaddingBottom>
-          <FontSize>8pt</FontSize>
           <PaddingRight>2pt</PaddingRight>
           <PaddingTop>2pt</PaddingTop>
+          <PaddingBottom>2pt</PaddingBottom>
         </Style>
         <CanGrow>true</CanGrow>
+        <Left>15.75cm</Left>
         <Height>0.63492cm</Height>
         <Value>="Page " &amp; Globals!PageNumber &amp; " of " &amp; Globals!TotalPages</Value>
       </Textbox>
     </ReportItems>
     <Height>0.88492cm</Height>
     <PrintOnLastPage>true</PrintOnLastPage>
-    <PrintOnFirstPage>true</PrintOnFirstPage>
   </PageFooter>
   <TopMargin>2.5cm</TopMargin>
   <PageHeight>29.7cm</PageHeight>
