@@ -60,7 +60,7 @@ namespace ASStoredProcs
             try
             {
                 string res;
-                client.Discover(request, restrictions, properties, out res, false, false, false);
+                TimeoutUtility.XmlaClientDiscover(client, request, restrictions, properties, out res, false, false, false);
 
                 dt = createDataTableFromXmla(res);
             }
@@ -96,7 +96,9 @@ namespace ASStoredProcs
             {
                 properties = "<Content>Schema</Content>";
             }
-            xmlac.Discover("DISCOVER_XML_METADATA", restrictions, properties, out xmlaResult, false, false, false);
+
+            TimeoutUtility.XmlaClientDiscover(xmlac, "DISCOVER_XML_METADATA", restrictions, properties, out xmlaResult, false, false, false);
+
             XmlaDiscoverParser dp = new XmlaDiscoverParser();
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xmlaResult);
@@ -203,11 +205,12 @@ namespace ASStoredProcs
 
         private XmlaClient createXmlaClientAndConnect()
         {
+            Context.CheckCancelled();
             XmlaClient client;
             client = new XmlaClient();
             Context.TraceEvent(100,0,"Discover: About to Establish XML/A Connection");
             client.Connect(Context.CurrentServerID);
-            Context.TraceEvent(100,0,"Discover: XML/A Connection established");
+            Context.TraceEvent(100, 0, "Discover: XML/A Connection established");
             return client;
         }
 
