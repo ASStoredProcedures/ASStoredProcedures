@@ -30,7 +30,7 @@ namespace ASStoredProcs
         public static Microsoft.AnalysisServices.AdomdServer.Set ParallelGenerate(Microsoft.AnalysisServices.AdomdServer.Set IterationSet, string SetExpression)
         {
             List<ParallelQueryThreadInfo> threadInfos = new List<ParallelQueryThreadInfo>();
-            string connectionString = "Data Source=" + Context.CurrentServerID + ";Provider=msolap.3;initial catalog=" + Context.CurrentDatabaseName + ";";
+            string connectionString = "Data Source=" + Context.CurrentServerID + ";initial catalog=" + Context.CurrentDatabaseName + ";";
 
             foreach (Microsoft.AnalysisServices.AdomdServer.Tuple t in IterationSet)
             {
@@ -57,7 +57,10 @@ namespace ASStoredProcs
             for (int i = 0; i < threadInfos.Count; i++)
             {
                 //wait until they've finished
-                threadInfos[i].autoEvent.WaitOne();
+                while (!threadInfos[i].autoEvent.WaitOne(1000, false))
+                {
+                    Context.CheckCancelled();
+                }
                 if (threadInfos[i].ex != null) throw threadInfos[i].ex;
                 if (i > 0) sFinalSet.Append(" + ");
                 sFinalSet.Append(threadInfos[i].returnValue);
@@ -71,7 +74,7 @@ namespace ASStoredProcs
         public static Microsoft.AnalysisServices.AdomdServer.Set ParallelUnion(string SetExpression1, string SetExpression2)
         {
             List<ParallelQueryThreadInfo> threadInfos = new List<ParallelQueryThreadInfo>();
-            string connectionString = "Data Source=" + Context.CurrentServerID + ";Provider=msolap.3;initial catalog=" + Context.CurrentDatabaseName + ";";
+            string connectionString = "Data Source=" + Context.CurrentServerID + ";initial catalog=" + Context.CurrentDatabaseName + ";";
 
             for (int n = 0; n < 2; n++)
             {
@@ -91,7 +94,10 @@ namespace ASStoredProcs
             for (int i = 0; i < threadInfos.Count; i++)
             {
                 //wait until they've finished
-                threadInfos[i].autoEvent.WaitOne();
+                while (!threadInfos[i].autoEvent.WaitOne(1000, false))
+                {
+                    Context.CheckCancelled();
+                }
                 if (threadInfos[i].ex != null) throw threadInfos[i].ex;
                 if (i > 0) sFinalSet.Append(" + ");
                 sFinalSet.Append(threadInfos[i].returnValue);

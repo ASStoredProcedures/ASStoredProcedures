@@ -76,8 +76,7 @@ namespace ASStoredProcs
 
         public static DataTable ExecuteDrillthroughAndFixColumns(string sDrillthroughMDX)
         {
-            AdomdClient.AdomdConnection conn = new Microsoft.AnalysisServices.AdomdClient.AdomdConnection("Data Source=" + Context.CurrentServerID + ";Initial Catalog=" + Context.CurrentDatabaseName + ";Application Name=ASSP");
-            conn.Open();
+            AdomdClient.AdomdConnection conn = TimeoutUtility.ConnectAdomdClient("Data Source=" + Context.CurrentServerID + ";Initial Catalog=" + Context.CurrentDatabaseName + ";Application Name=ASSP");
             try
             {
                 AdomdClient.AdomdCommand cmd = new AdomdClient.AdomdCommand();
@@ -85,11 +84,24 @@ namespace ASStoredProcs
                 cmd.CommandText = sDrillthroughMDX;
                 DataTable tbl = new DataTable();
                 AdomdClient.AdomdDataAdapter adp = new AdomdClient.AdomdDataAdapter(cmd);
-                adp.Fill(tbl);
+                TimeoutUtility.FillAdomdDataAdapter(adp, tbl);
+
+                Dictionary<string, int> dictColumnNames = new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
 
                 foreach (DataColumn col in tbl.Columns)
                 {
                     string sNewColumnName = col.ColumnName.Substring(col.ColumnName.LastIndexOf('.') + 1).Replace("[", "").Replace("]", "");
+                    if (dictColumnNames.ContainsKey(sNewColumnName))
+                        dictColumnNames[sNewColumnName]++;
+                    else
+                        dictColumnNames.Add(sNewColumnName, 1);
+                }
+
+                foreach (DataColumn col in tbl.Columns)
+                {
+                    string sNewColumnName = col.ColumnName.Substring(col.ColumnName.LastIndexOf('.') + 1).Replace("[", "").Replace("]", "");
+                    if (dictColumnNames[sNewColumnName] > 1)
+                        sNewColumnName = col.ColumnName.Substring(col.ColumnName.LastIndexOf('[') + 1).Replace("[", "").Replace("]", "").Replace("$", "");
                     if (!tbl.Columns.Contains(sNewColumnName))
                         col.ColumnName = sNewColumnName;
                 }
@@ -104,10 +116,15 @@ namespace ASStoredProcs
 
         public static string CurrentCellAttributes()
         {
+            return CurrentCellAttributesForCube(GetCurrentCubeName());
+        }
+
+        public static string CurrentCellAttributesForCube(string CubeName)
+        {
             // start with empty string
             StringBuilder coordinate = new StringBuilder();
             bool first = true;
-            foreach (Dimension d in Context.Cubes[GetCurrentCubeName()].Dimensions)
+            foreach (Dimension d in Context.Cubes[CubeName].Dimensions)
             {
                 foreach (Hierarchy h in d.AttributeHierarchies)
                 {
@@ -182,14 +199,22 @@ namespace ASStoredProcs
 
         private static string GetCurrentCubeName()
         {
+            string sCubeName = "";
             if (Context.CurrentCube != null)
             {
-                return Context.CurrentCube.Name;
+                sCubeName = Context.CurrentCube.Name;
             }
             else
             {
-                return new Expression("[Measures].CurrentMember.Name").Calculate(null).ToString();
+                sCubeName = new Expression("[Measures].CurrentMember.Properties(\"CUBE_NAME\")").Calculate(null).ToString();
             }
+
+            //this code will run if the current cube is a perspective. it will return the name of the base cube in order to work around a bug in walking through the objects in AdomdServer in a perspective
+            Property propBaseCubeName = Context.Cubes[sCubeName].Properties.Find("BASE_CUBE_NAME");
+            if (propBaseCubeName != null)
+                return Convert.ToString(propBaseCubeName.Value);
+            else
+                return sCubeName;
         }
 
         //don't use this in the MDX script or it may return calculated measures from the previous processed version or blow up if the cube was not previously processed
