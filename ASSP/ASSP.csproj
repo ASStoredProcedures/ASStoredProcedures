@@ -84,6 +84,7 @@
     <Compile Include="StringFilters.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="StrToSet.cs" />
+    <Compile Include="Utilities\TimeoutUtility.cs" />
     <Compile Include="WritebackWithAssignments.cs" />
     <Compile Include="WriteToProfiler.cs" />
     <Compile Include="XmlaDiscover.cs" />
