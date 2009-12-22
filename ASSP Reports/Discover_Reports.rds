@@ -1,10 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <RptDataSource xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <Name>Discover Reports</Name>
-  <DataSourceID>befa104c-7d31-4f29-a18f-a43683b753ae</DataSourceID>
+  <Name>Discover_Reports</Name>
   <ConnectionProperties>
     <Extension>OLEDB</Extension>
-    <ConnectString>Provider=MSOLAP.3;Data Source=localhost;Initial Catalog="Adventure Works DW"</ConnectString>
+    <ConnectString>Provider=MSOLAP;Data Source=localhost\sql08;Initial Catalog="Adventure Works DW 2008"</ConnectString>
     <IntegratedSecurity>true</IntegratedSecurity>
   </ConnectionProperties>
+  <DataSourceID>befa104c-7d31-4f29-a18f-a43683b753ae</DataSourceID>
 </RptDataSource>
