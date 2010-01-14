@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2005/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
   <DataSources>
-    <DataSource Name="Discover Reports">
-      <rd:DataSourceID>b9af4a31-2a83-4fbd-8a5c-33c537a70aef</rd:DataSourceID>
-      <DataSourceReference>Discover Reports</DataSourceReference>
+    <DataSource Name="Adventure Works Cube">
+      <rd:DataSourceID>d4673f19-7cc6-4f24-9264-e3bd1ff73ad6</rd:DataSourceID>
+      <DataSourceReference>Adventure Works Cube</DataSourceReference>
     </DataSource>
   </DataSources>
   <InteractiveHeight>29.7cm</InteractiveHeight>
@@ -57,7 +57,7 @@
         </Field>
       </Fields>
       <Query>
-        <DataSourceName>Discover Reports</DataSourceName>
+        <DataSourceName>Adventure Works Cube</DataSourceName>
         <CommandText>="call assp.discoverxmlmetadatafull(""\Database\Roles\Role|Name\Members\Member"" , """", ""&lt;DatabaseID&gt;"  &amp; Parameters!DatabaseId.Value &amp; "&lt;/DatabaseID&gt;"")"</CommandText>
         <rd:SuppressAutoUpdate>true</rd:SuppressAutoUpdate>
       </Query>

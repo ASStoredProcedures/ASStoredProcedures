@@ -3,7 +3,7 @@
   <DataSources>
     <DataSource Name="Discover Reports">
       <rd:DataSourceID>03521f12-73aa-463d-b247-64caa1d77e5c</rd:DataSourceID>
-      <DataSourceReference>Discover Reports</DataSourceReference>
+      <DataSourceReference>Adventure Works Cube</DataSourceReference>
     </DataSource>
   </DataSources>
   <InteractiveHeight>29.7cm</InteractiveHeight>
