@@ -30,6 +30,9 @@ namespace ASStoredProcs
     // command.
     internal class XmlaDiscoverParser
     {
+        // added underscore to prevent name clashes.
+        private const string PARENT_PREFIX = "Parent_";
+
         XmlDocument doc;
         public XmlDocument Document
         {
@@ -197,8 +200,7 @@ namespace ASStoredProcs
                 {
                     if (innerNode.Name == "ID" )
                     {
-                        // added underscore "Parent" to prevent name clashes.
-                        dt.Columns.Add("Parent" + myNode.Name + "ID");
+                        dt.Columns.Add(PARENT_PREFIX + myNode.Name + "ID");
                     }
                     //TODO - coonverting the .Contains call to BinarySearch would 
                     //       allow for the injection of a custom implementation of IComparer
@@ -228,7 +230,7 @@ namespace ASStoredProcs
                 {
                     if (innerNode.Name == "ID")
                     {
-                        colIdx = dt.Columns.IndexOf("Parent" + myNode.Name + "ID");
+                        colIdx = dt.Columns.IndexOf(PARENT_PREFIX + myNode.Name + "ID");
                         if (colIdx > -1)
                         {
                             data[colIdx] = innerNode.FirstChild.Value;
