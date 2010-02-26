@@ -43,7 +43,13 @@ namespace ASStoredProcs
                     Microsoft.AnalysisServices.Server oServer = new Microsoft.AnalysisServices.Server();
                     oServer.Connect("Data Source=" + sServerName);
                     Database db = oServer.Databases.GetByName(sDatabaseName);
-                    Cube cube = db.Cubes.GetByName(sCubeName);
+                    Cube cube = db.Cubes.FindByName(sCubeName);
+                    // If the cube name is not found it must be a perspective, so we need to
+                    // search all of the cubes for the perspective name
+                    if (cube == null)
+                    {
+                        cube = FindBaseCubeForPerspective(sCubeName, db);
+                    }
                     dtTemp = cube.LastProcessed;
                 }
                 catch (Exception ex)
@@ -64,6 +70,20 @@ namespace ASStoredProcs
             //return Context.CurrentCube.LastProcessed; //this doesn't work because of a bug: https://connect.microsoft.com/SQLServer/feedback/ViewFeedback.aspx?FeedbackID=124606
         }
 
+        private static Cube FindBaseCubeForPerspective(string sCubeName, Database db)
+        {
+            Cube cube;
+            foreach (Cube c in db.Cubes)
+            {
+                if (c.Perspectives.ContainsName(sCubeName))
+                {
+                    cube = c;
+                    break;
+                }
+            }
+            return cube;
+        }
+
         public static DateTime GetMeasureGroupLastProcessedDate(string MeasureGroupName)
         {
             string sServerName = Context.CurrentServerID;
@@ -81,6 +101,10 @@ namespace ASStoredProcs
                     oServer.Connect("Data Source=" + sServerName);
                     Database db = oServer.Databases.GetByName(sDatabaseName);
                     Cube cube = db.Cubes.GetByName(sCubeName);
+                    if (cube == null)
+                    {
+                        cube = FindBaseCubeForPerspective(sCubeName, db);
+                    }
                     dtTemp = cube.MeasureGroups.GetByName(MeasureGroupName).LastProcessed;
                 }
                 catch (Exception ex)
