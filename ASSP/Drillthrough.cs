@@ -65,12 +65,12 @@ namespace ASStoredProcs
             if (sReturnColumns != null)
             {
                 //passed in a set of return columns
-                return "drillthrough " + (iMaxRows == null ? "" : "maxrows " + iMaxRows) + " select (" + CurrentCellAttributes(tuple) + ") on 0 from [" + GetCurrentCubeName() + "] return " + sReturnColumns;
+                return "drillthrough " + (iMaxRows == null ? "" : "maxrows " + iMaxRows) + " select (" + CurrentCellAttributes(tuple) + ") on 0 from [" + AMOHelpers.GetCurrentCubeName() + "] return " + sReturnColumns;
             }
             else
             {
                 //passed in a reference to a measure, so just do the default drillthrough for it
-                return "drillthrough " + (iMaxRows == null ? "" : "maxrows " + iMaxRows) + " select (" + CurrentCellAttributes(tuple) + ") on 0 from [" + GetCurrentCubeName() + "]";
+                return "drillthrough " + (iMaxRows == null ? "" : "maxrows " + iMaxRows) + " select (" + CurrentCellAttributes(tuple) + ") on 0 from [" + AMOHelpers.GetCurrentCubeName() + "]";
             }
         }
 
@@ -116,7 +116,7 @@ namespace ASStoredProcs
 
         public static string CurrentCellAttributes()
         {
-            return CurrentCellAttributesForCube(GetCurrentCubeName());
+            return CurrentCellAttributesForCube(AMOHelpers.GetCurrentCubeName());
         }
 
         public static string CurrentCellAttributesForCube(string CubeName)
@@ -156,7 +156,7 @@ namespace ASStoredProcs
             // start with empty string
             StringBuilder coordinate = new StringBuilder();
             bool first = true;
-            foreach (Dimension d in Context.Cubes[GetCurrentCubeName()].Dimensions)
+            foreach (Dimension d in Context.Cubes[AMOHelpers.GetCurrentCubeName()].Dimensions)
             {
                 foreach (Hierarchy h in d.AttributeHierarchies)
                 {
@@ -197,32 +197,13 @@ namespace ASStoredProcs
             return coordinate.ToString();
         }
 
-        private static string GetCurrentCubeName()
-        {
-            string sCubeName = "";
-            if (Context.CurrentCube != null)
-            {
-                sCubeName = Context.CurrentCube.Name;
-            }
-            else
-            {
-                sCubeName = new Expression("[Measures].CurrentMember.Properties(\"CUBE_NAME\")").Calculate(null).ToString();
-            }
-
-            //this code will run if the current cube is a perspective. it will return the name of the base cube in order to work around a bug in walking through the objects in AdomdServer in a perspective
-            Property propBaseCubeName = Context.Cubes[sCubeName].Properties.Find("BASE_CUBE_NAME");
-            if (propBaseCubeName != null)
-                return Convert.ToString(propBaseCubeName.Value);
-            else
-                return sCubeName;
-        }
 
         //don't use this in the MDX script or it may return calculated measures from the previous processed version or blow up if the cube was not previously processed
         public static Set GetMeasureGroupCalculatedMeasures(string sMeasureGroupName)
         {
             StringBuilder sb = new StringBuilder();
             XmlaDiscover discover = new XmlaDiscover();
-            DataTable table = discover.Discover("MDSCHEMA_MEASURES", "<CUBE_NAME>" + GetCurrentCubeName() + "</CUBE_NAME><MEASUREGROUP_NAME>" + sMeasureGroupName + "</MEASUREGROUP_NAME>");
+            DataTable table = discover.Discover("MDSCHEMA_MEASURES", "<CUBE_NAME>" + AMOHelpers.GetCurrentCubeName() + "</CUBE_NAME><MEASUREGROUP_NAME>" + sMeasureGroupName + "</MEASUREGROUP_NAME>");
             foreach (DataRow row in table.Rows)
             {
                 if (Convert.ToInt32(row["MEASURE_AGGREGATOR"]) == 127)
