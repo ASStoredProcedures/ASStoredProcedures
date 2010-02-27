@@ -59,6 +59,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AMOHelpers.cs" />
     <Compile Include="AsymmetricSet.cs" />
     <Compile Include="CellTimings.cs" />
     <Compile Include="ClusterNaming.cs" />
