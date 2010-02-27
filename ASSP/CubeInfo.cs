@@ -31,7 +31,7 @@ namespace ASStoredProcs
         {
             string sServerName = Context.CurrentServerID;
             string sDatabaseName = Context.CurrentDatabaseName;
-            string sCubeName = Context.CurrentCube.Name;
+            string sCubeName = AMOHelpers.GetCurrentCubeName();
 
             DateTime dtTemp = DateTime.MinValue;
             Exception exDelegate = null;
@@ -43,7 +43,7 @@ namespace ASStoredProcs
                     Microsoft.AnalysisServices.Server oServer = new Microsoft.AnalysisServices.Server();
                     oServer.Connect("Data Source=" + sServerName);
                     Database db = oServer.Databases.GetByName(sDatabaseName);
-                    Cube cube =  db.Cubes.FindByName(AMOHelpers.GetCurrentCubeName());
+                    Cube cube =  db.Cubes.FindByName(sCubeName);
                     
                     dtTemp = cube.LastProcessed;
                 }
@@ -69,7 +69,7 @@ namespace ASStoredProcs
         {
             string sServerName = Context.CurrentServerID;
             string sDatabaseName = Context.CurrentDatabaseName;
-            string sCubeName = Context.CurrentCube.Name;
+            string sCubeName = AMOHelpers.GetCurrentCubeName();
 
             DateTime dtTemp = DateTime.MinValue;
             Exception exDelegate = null;
@@ -81,7 +81,7 @@ namespace ASStoredProcs
                     Microsoft.AnalysisServices.Server oServer = new Microsoft.AnalysisServices.Server();
                     oServer.Connect("Data Source=" + sServerName);
                     Database db = oServer.Databases.GetByName(sDatabaseName);
-                    Cube cube = db.Cubes.GetByName(AMOHelpers.GetCurrentCubeName());
+                    Cube cube = db.Cubes.GetByName(sCubeName);
 
                     dtTemp = cube.MeasureGroups.GetByName(MeasureGroupName).LastProcessed;
                 }
