@@ -11,12 +11,12 @@
       <FullPath>Dimension Health Check SSAS.rds</FullPath>
     </ProjectItem>
     <ProjectItem>
-      <Name>Discover Reports.rds</Name>
-      <FullPath>Discover Reports.rds</FullPath>
-    </ProjectItem>
-    <ProjectItem>
       <Name>Memory Usage Cube.rds</Name>
       <FullPath>Memory Usage Cube.rds</FullPath>
+    </ProjectItem>
+    <ProjectItem>
+      <Name>Discover_Reports.rds</Name>
+      <FullPath>Discover_Reports.rds</FullPath>
     </ProjectItem>
   </DataSources>
   <Reports>
@@ -32,6 +32,10 @@
     <ProjectItem>
       <Name>Discover Cube Status.rdl</Name>
       <FullPath>Discover Cube Status.rdl</FullPath>
+    </ProjectItem>
+    <ProjectItem>
+      <Name>Discover Database Roles sub.rdl</Name>
+      <FullPath>Discover Database Roles sub.rdl</FullPath>
     </ProjectItem>
     <ProjectItem>
       <Name>Discover Database Roles.rdl</Name>
@@ -59,10 +63,6 @@
       <FullPath>partition.gif</FullPath>
       <MimeType>image/gif</MimeType>
     </ResourceProjectItem>
-    <ProjectItem>
-      <Name>Discover Database Roles sub.rdl</Name>
-      <FullPath>Discover Database Roles sub.rdl</FullPath>
-    </ProjectItem>
     <ResourceProjectItem>
       <Name>Role.gif</Name>
       <FullPath>Role.gif</FullPath>

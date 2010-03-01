@@ -43,12 +43,12 @@
           <DataField>RoleName</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
-        <Field Name="RoleID">
-          <DataField>RoleID</DataField>
+        <Field Name="Parent_RoleID">
+          <DataField>Parent_RoleID</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
-        <Field Name="DatabaseID">
-          <DataField>DatabaseID</DataField>
+        <Field Name="Parent_DatabaseID">
+          <DataField>Parent_DatabaseID</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
         <Field Name="ServerID">
@@ -99,7 +99,7 @@
         </ReportItems>
         <Filters>
           <Filter>
-            <FilterExpression>=Fields!RoleID.Value</FilterExpression>
+            <FilterExpression>=Fields!Parent_RoleID.Value</FilterExpression>
             <Operator>Equal</Operator>
             <FilterValues>
               <FilterValue>=Parameters!RoleId.Value</FilterValue>
