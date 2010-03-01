@@ -128,12 +128,12 @@
           <DataField>DimensionName</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
-        <Field Name="DimensionID">
-          <DataField>DimensionID</DataField>
+        <Field Name="Parent_DimensionID">
+          <DataField>Parent_DimensionID</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
-        <Field Name="DatabaseID">
-          <DataField>DatabaseID</DataField>
+        <Field Name="Parent_DatabaseID">
+          <DataField>Parent_DatabaseID</DataField>
           <rd:TypeName>System.String</rd:TypeName>
         </Field>
         <Field Name="ServerID">
