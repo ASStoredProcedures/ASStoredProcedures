@@ -92,10 +92,6 @@ namespace ASStoredProcs
             XmlaClient xmlac = createXmlaClientAndConnect();
             string xmlaResult;
             string properties = "";
-            if (Context.ExecuteForPrepare)
-            {
-                properties = "<Content>Schema</Content>";
-            }
 
             TimeoutUtility.XmlaClientDiscover(xmlac, "DISCOVER_XML_METADATA", restrictions, properties, out xmlaResult, false, false, false);
 
