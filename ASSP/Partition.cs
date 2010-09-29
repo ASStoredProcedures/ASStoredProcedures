@@ -47,7 +47,7 @@ namespace ASStoredProcs
             server.Connect("*"); //connect to the current session... important to connect this way or else you will get a deadlock when you go to save the partition changes
             
             AdomdServer.Context.CheckCancelled(); //could be a bit long running, so allow user to cancel
-            
+
             try
             {
                 AdomdServer.Context.TraceEvent(0, 0, "Retrieving Template Partition");
@@ -149,10 +149,12 @@ namespace ASStoredProcs
                         pm.Partition = template;
                         bNeedToDeleteTemplate = false;
                         pm.Partition.Process(ProcessType.ProcessClear); //unprocess it
+                        AdomdServer.Context.TraceEvent(0, 0, "ProcessClear partition");
                     }
                     else
                     {
                         pm.Partition = template.Clone();
+                        AdomdServer.Context.TraceEvent(0, 0, "cloned partition");
                     }
                     pm.Partition.Slice = pm.PartitionSlice;
                     pm.Partition.Name = pm.PartitionName;
@@ -173,6 +175,11 @@ namespace ASStoredProcs
                 AdomdServer.Context.TraceEvent(0, 0, "Saving changes");
                 mg.Update(UpdateOptions.ExpandFull);
                 AdomdServer.Context.TraceEvent(0, 0, "Done creating partitions");
+            }
+            catch (Exception ex)
+            {
+                AdomdServer.Context.TraceEvent(0, 0, "error: " + ex.Message + " - " + ex.StackTrace);
+                throw ex;
             }
             finally
             {
@@ -370,7 +377,7 @@ namespace ASStoredProcs
                             DataColumn dc = distinctMeasure.ParentCube.DataSourceView.Schema.Tables[distinctColumnBinding.TableID].Columns[distinctColumnBinding.ColumnID];
                             if (!dc.ExtendedProperties.ContainsKey("ComputedColumnExpression"))
                             {
-                                dictPartitions[sGrouper].DistinctCountColumn = "[" + distinctMeasure.ParentCube.DataSourceView.Schema.Tables[distinctColumnBinding.TableID].ExtendedProperties["FriendlyName"].ToString() + "].[" + (dc.ExtendedProperties["DbColumnName"] ?? dc.ColumnName).ToString() + "]";
+                                dictPartitions[sGrouper].DistinctCountColumn = "[" + distinctMeasure.ParentCube.DataSourceView.Schema.Tables[distinctColumnBinding.TableID].ExtendedProperties["FriendlyName"].ToString() + "].[" + GetColumnName(dc) + "]";
                             }
                             else
                             {
@@ -582,7 +589,7 @@ namespace ASStoredProcs
                             DataColumn dc = distinctMeasure.ParentCube.DataSourceView.Schema.Tables[distinctColumnBinding.TableID].Columns[distinctColumnBinding.ColumnID];
                             if (!dc.ExtendedProperties.ContainsKey("ComputedColumnExpression"))
                             {
-                                dictPartitions[sGrouper].DistinctCountColumn = "[" + distinctMeasure.ParentCube.DataSourceView.Schema.Tables[distinctColumnBinding.TableID].ExtendedProperties["FriendlyName"].ToString() + "].[" + (dc.ExtendedProperties["DbColumnName"] ?? dc.ColumnName).ToString() + "]";
+                                dictPartitions[sGrouper].DistinctCountColumn = "[" + distinctMeasure.ParentCube.DataSourceView.Schema.Tables[distinctColumnBinding.TableID].ExtendedProperties["FriendlyName"].ToString() + "].[" + GetColumnName(dc) + "]";
                             }
                             else
                             {
@@ -839,7 +846,7 @@ namespace ASStoredProcs
                             DataColumn dc = distinctMeasure.ParentCube.DataSourceView.Schema.Tables[distinctColumnBinding.TableID].Columns[distinctColumnBinding.ColumnID];
                             if (!dc.ExtendedProperties.ContainsKey("ComputedColumnExpression"))
                             {
-                                dictPartitions[sGrouper].DistinctCountColumn = "[" + distinctMeasure.ParentCube.DataSourceView.Schema.Tables[distinctColumnBinding.TableID].ExtendedProperties["FriendlyName"].ToString() + "].[" + (dc.ExtendedProperties["DbColumnName"] ?? dc.ColumnName).ToString() + "]";
+                                dictPartitions[sGrouper].DistinctCountColumn = "[" + distinctMeasure.ParentCube.DataSourceView.Schema.Tables[distinctColumnBinding.TableID].ExtendedProperties["FriendlyName"].ToString() + "].[" + GetColumnName(dc) + "]";
                             }
                             else
                             {
@@ -948,6 +955,14 @@ namespace ASStoredProcs
                 }
             }
             return "(" + sUniqueName + ")";
+        }
+
+        private static string GetColumnName(DataColumn dc)
+        {
+            if (!dc.ExtendedProperties.ContainsKey("DbColumnName"))
+                return dc.ColumnName;
+            else
+                return dc.ExtendedProperties["DbColumnName"].ToString();
         }
 
 
@@ -1324,11 +1339,11 @@ namespace ASStoredProcs
                                 }
                                 if (!oColumn.ExtendedProperties.ContainsKey("ComputedColumnExpression"))
                                 {
-                                    sQuery.Append("[").Append(oColumn.ExtendedProperties["DbColumnName"].ToString()).AppendLine("]");
+                                    sQuery.Append("[").Append(GetColumnName(oColumn)).AppendLine("]");
                                 }
                                 else
                                 {
-                                    sQuery.Append("[").Append(oColumn.ExtendedProperties["DbColumnName"].ToString()).Append("] = ").AppendLine(oColumn.ExtendedProperties["ComputedColumnExpression"].ToString());
+                                    sQuery.Append("[").Append(GetColumnName(oColumn)).Append("] = ").AppendLine(oColumn.ExtendedProperties["ComputedColumnExpression"].ToString());
                                 }
                             }
                         }
@@ -1448,11 +1463,11 @@ namespace ASStoredProcs
                         select.Append((select.Length == 0 ? "select " : ","));
                         if (!dc.ExtendedProperties.ContainsKey("ComputedColumnExpression"))
                         {
-                            select.Append("[").Append(dsv.Schema.Tables[col.TableID].ExtendedProperties["FriendlyName"].ToString()).Append("].[").Append((dc.ExtendedProperties["DbColumnName"] ?? dc.ColumnName).ToString()).AppendLine("]");
+                            select.Append("[").Append(dsv.Schema.Tables[col.TableID].ExtendedProperties["FriendlyName"].ToString()).Append("].[").Append(GetColumnName(dc)).AppendLine("]");
                         }
                         else
                         {
-                            select.Append("[").Append(dc.ExtendedProperties["DbColumnName"].ToString()).Append("] = ");
+                            select.Append("[").Append(GetColumnName(dc)).Append("] = ");
                             select.AppendLine(dc.ExtendedProperties["ComputedColumnExpression"].ToString());
                         }
 
@@ -1472,11 +1487,11 @@ namespace ASStoredProcs
                         select.Append(",");
                         if (!dc.ExtendedProperties.ContainsKey("ComputedColumnExpression"))
                         {
-                            select.Append("[").Append(dsv.Schema.Tables[col.TableID].ExtendedProperties["FriendlyName"].ToString()).Append("].[").Append((dc.ExtendedProperties["DbColumnName"] ?? dc.ColumnName).ToString()).AppendLine("]");
+                            select.Append("[").Append(dsv.Schema.Tables[col.TableID].ExtendedProperties["FriendlyName"].ToString()).Append("].[").Append(GetColumnName(dc)).AppendLine("]");
                         }
                         else
                         {
-                            select.Append("[").Append(dc.ExtendedProperties["DbColumnName"].ToString()).Append("] = ");
+                            select.Append("[").Append(GetColumnName(dc)).Append("] = ");
                             select.AppendLine(dc.ExtendedProperties["ComputedColumnExpression"].ToString());
                         }
 
