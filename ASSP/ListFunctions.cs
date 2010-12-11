@@ -195,5 +195,23 @@ namespace ASStoredProcs
                 return typeName;
         }
 
+        [SafeToPrepare(true)]
+        public static DataTable AssemblyVersion()
+        {
+            // build the structure for the datatable which is returned
+            DataTable dtVersion = new DataTable();
+            dtVersion.Columns.Add("Version", typeof(string));
+            dtVersion.Columns.Add("Major", typeof(int));
+            dtVersion.Columns.Add("Minor", typeof(int));
+            dtVersion.Columns.Add("Build", typeof(int));
+            dtVersion.Columns.Add("Revision", typeof(int));
+
+            Version v = typeof(FunctionLister).Assembly.GetName().Version;
+            object[] arrRowValues = new object[] { v.ToString(), v.Major, v.Minor, v.Build, v.Revision };
+            dtVersion.Rows.Add(arrRowValues);
+
+            return dtVersion;
+        }
+
     } //public class ListFunctions
 } //namespace ASStoredProcs
