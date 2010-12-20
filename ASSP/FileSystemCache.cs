@@ -92,6 +92,19 @@ namespace ASStoredProcs
         }
         #endregion
 
+        #region ClearAllCaches
+        /// <summary>
+        /// Clear both the Analysis Services cache and the active+standby system file cache in one sproc call
+        /// </summary>
+        public static void ClearAllCaches()
+        {
+            XmlaDiscover xmla = new XmlaDiscover();
+            xmla.ClearCache();
+
+            ClearFileSystemCache(true);
+        }
+        #endregion
+
         #region ClearStandbyFileSystemCacheByConsumingAvailableMemory
         private static void ClearStandbyFileSystemCacheByConsumingAvailableMemory()
         {
