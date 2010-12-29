@@ -34,7 +34,7 @@ namespace ASStoredProcs
         private const string PARTITION_NAME = "MemoryUsagePartition";
         private const string AGG_DESIGN_NAME = "AggDesign";
         private const string NUM_SNAPSHOTS_ANNOTATION_NAME = "NumSnapshots";
-        private const int ROWS_PER_BATCH = 10000;
+        private const int ROWS_PER_BATCH = 1000; //small batch size of 50 helps avoid failures but is tremendously slow... batch size of 10000 got more errors
         private const int SNAPSHOTS_PER_PARTITION = 100; //a moderately used 32-bit server will end up partitions around 50MB
 
         private Server svr;
@@ -53,24 +53,28 @@ namespace ASStoredProcs
 
         public MemoryUsage()
         {
-            svr = new Microsoft.AnalysisServices.Server();
-            svr.Connect("Data Source=" + AdomdServer.Context.CurrentServerID); //connect to a new session... otherwise the changes that are saved under this connection won't be committed until the sproc ends... and we need yet other connections to be able to see the changes prior to the sproc completing
-            CreateDatabase();
         }
 
         public void SnapshotMemoryUsageTotals()
         {
+            svr = new Microsoft.AnalysisServices.Server();
+            svr.Connect("Data Source=" + AdomdServer.Context.CurrentServerID); //connect to a new session... otherwise the changes that are saved under this connection won't be committed until the sproc ends... and we need yet other connections to be able to see the changes prior to the sproc completing
+            db = svr.Databases.FindByName(DATABASE_NAME);
+
             LoadExistingMemoryDimensionSignatures();
             LoadSessions();
             DiscoverMemoryUsage();
         }
 
         #region Create Database
-        private void CreateDatabase()
+        public void CreateMemoryUsageDatabase()
         {
+            svr = new Microsoft.AnalysisServices.Server();
+            svr.Connect("*"); //"Data Source=" + AdomdServer.Context.CurrentServerID); //connect to a new session... otherwise the changes that are saved under this connection won't be committed until the sproc ends... and we need yet other connections to be able to see the changes prior to the sproc completing
             db = svr.Databases.FindByName(DATABASE_NAME);
+
             bool bExists = (db != null);
-            if (bExists)
+            if (bExists) //TODO: deal with upgrade
             {
                 try
                 {
@@ -154,6 +158,9 @@ namespace ASStoredProcs
             t.Columns.Add("FileExtension", typeof(string));
             t.Columns.Add("User", typeof(string));
             t.Columns.Add("DiskUsed", typeof(long));
+            t.Columns.Add("DataDiskUsed", typeof(long));
+            t.Columns.Add("AggDiskUsed", typeof(long));
+            t.Columns.Add("IndexDiskUsed", typeof(long));
 
             // Create the Date dimension
             Dimension dim = db.Dimensions.Add("Snapshot Date");
@@ -355,6 +362,21 @@ namespace ASStoredProcs
             meas.FormatString = "#,#";
             meas.Source = CreateDataItem(dsv, TABLE_NAME, "DiskUsed");
 
+            meas = mg.Measures.Add("Data Disk Used");
+            meas.AggregateFunction = AggregationFunction.LastChild;
+            meas.FormatString = "#,#";
+            meas.Source = CreateDataItem(dsv, TABLE_NAME, "DataDiskUsed");
+
+            meas = mg.Measures.Add("Agg Disk Used");
+            meas.AggregateFunction = AggregationFunction.LastChild;
+            meas.FormatString = "#,#";
+            meas.Source = CreateDataItem(dsv, TABLE_NAME, "AggDiskUsed");
+
+            meas = mg.Measures.Add("Index Disk Used");
+            meas.AggregateFunction = AggregationFunction.LastChild;
+            meas.FormatString = "#,#";
+            meas.Source = CreateDataItem(dsv, TABLE_NAME, "IndexDiskUsed");
+
             CubeDimension cubeDim;
             RegularMeasureGroupDimension regMgDim;
             MeasureGroupAttribute mgAttr;
@@ -414,6 +436,8 @@ namespace ASStoredProcs
         #region XMLA process commands
         private void ProcessAddSnapshotDate()
         {
+            Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 8, "Starting to add snapshot date");
+
             string sXMLA = "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\">" + "\r\n"
              + "<Body>" + "\r\n"
              + "<Execute xmlns=\"urn:schemas-microsoft-com:xml-analysis\">" + "\r\n"
@@ -489,21 +513,27 @@ namespace ASStoredProcs
             XmlReader reader = null;
             try
             {
+                Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 8, sXMLA);
                 reader = svr.SendXmlaRequest(XmlaRequestType.Execute, ms);
+                Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 8, "Ran added snapshot date XMLA");
                 if (reader.Read())
                 {
+                    Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 8, "Reading snapshot date XMLA results");
                     string sResponse = reader.ReadOuterXml();
+                    Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 888, sResponse);
                     if (sResponse.Contains("</soap:Fault>") || sResponse.Contains("</Exception>"))
                     {
                         throw new Exception(sResponse);
                     }
                 }
+                Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 8, "Successfully added snapshot date");
             }
             finally
             {
                 try { reader.Close(); }
                 catch { }
             }
+            Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 8, "Finished add snapshot date function");
         }
 
         private void ProcessAddMemoryDimension()
@@ -973,6 +1003,8 @@ namespace ASStoredProcs
              + "            <xsd:element sql:field=\"MemoryAllocFromAlloc\" name=\"MemoryAllocFromAlloc\" type=\"xsd:unsignedLong\" minOccurs=\"0\" />" + "\r\n"
              + "            <xsd:element sql:field=\"ElementCount\" name=\"ElementCount\" type=\"xsd:unsignedInt\" minOccurs=\"0\" />" + "\r\n"
              + "            <xsd:element sql:field=\"Shrinkable\" name=\"Shrinkable\" type=\"xsd:string\" minOccurs=\"0\" />" + "\r\n"
+             + "            <xsd:element sql:field=\"ObjectParentPath\" name=\"ObjectParentPath\" type=\"xsd:string\" minOccurs=\"0\" />" + "\r\n"
+             + "            <xsd:element sql:field=\"ObjectId\" name=\"ObjectId\" type=\"xsd:string\" minOccurs=\"0\" />" + "\r\n"
              + "            <xsd:element sql:field=\"ShrinkableMemory\" name=\"ShrinkableMemory\" type=\"xsd:unsignedLong\" minOccurs=\"0\" />" + "\r\n"
              + "            <xsd:element sql:field=\"Folder1\" name=\"Folder1\" type=\"xsd:string\" minOccurs=\"0\" />" + "\r\n"
              + "            <xsd:element sql:field=\"Folder2\" name=\"Folder2\" type=\"xsd:string\" minOccurs=\"0\" />" + "\r\n"
@@ -988,6 +1020,9 @@ namespace ASStoredProcs
              + "            <xsd:element sql:field=\"FileExtension\" name=\"FileExtension\" type=\"xsd:string\" minOccurs=\"0\" />" + "\r\n"
              + "            <xsd:element sql:field=\"User\" name=\"User\" type=\"xsd:string\" minOccurs=\"0\" />" + "\r\n"
              + "            <xsd:element sql:field=\"DiskUsed\" name=\"DiskUsed\" type=\"xsd:unsignedLong\" minOccurs=\"0\" />" + "\r\n"
+             + "            <xsd:element sql:field=\"DataDiskUsed\" name=\"DataDiskUsed\" type=\"xsd:unsignedLong\" minOccurs=\"0\" />" + "\r\n"
+             + "            <xsd:element sql:field=\"AggDiskUsed\" name=\"AggDiskUsed\" type=\"xsd:unsignedLong\" minOccurs=\"0\" />" + "\r\n"
+             + "            <xsd:element sql:field=\"IndexDiskUsed\" name=\"IndexDiskUsed\" type=\"xsd:unsignedLong\" minOccurs=\"0\" />" + "\r\n"
              + "          </xsd:sequence>" + "\r\n"
              + "        </xsd:complexType>" + "\r\n"
              + "      </xsd:schema>" + "\r\n"
@@ -1006,6 +1041,7 @@ namespace ASStoredProcs
                 XmlReader reader = null;
                 try
                 {
+                    Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 100, sXMLA);
                     reader = svr.SendXmlaRequest(XmlaRequestType.Execute, ms);
                     if (reader.Read())
                     {
@@ -1160,6 +1196,36 @@ namespace ASStoredProcs
              + "            <ColumnID>DiskUsed</ColumnID>" + "\r\n"
              + "          </Source>" + "\r\n"
              + "        </Binding>" + "\r\n"
+             + "        <Binding xmlns=\"http://schemas.microsoft.com/analysisservices/2003/engine\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" + "\r\n"
+             + "          <DatabaseID>Memory Usage</DatabaseID>" + "\r\n"
+             + "          <CubeID>Memory Usage</CubeID>" + "\r\n"
+             + "          <MeasureGroupID>Memory Usage</MeasureGroupID>" + "\r\n"
+             + "          <MeasureID>Data Disk Used</MeasureID>" + "\r\n"
+             + "          <Source xsi:type=\"ColumnBinding\">" + "\r\n"
+             + "            <TableID/>" + "\r\n"
+             + "            <ColumnID>DataDiskUsed</ColumnID>" + "\r\n"
+             + "          </Source>" + "\r\n"
+             + "        </Binding>" + "\r\n"
+             + "        <Binding xmlns=\"http://schemas.microsoft.com/analysisservices/2003/engine\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" + "\r\n"
+             + "          <DatabaseID>Memory Usage</DatabaseID>" + "\r\n"
+             + "          <CubeID>Memory Usage</CubeID>" + "\r\n"
+             + "          <MeasureGroupID>Memory Usage</MeasureGroupID>" + "\r\n"
+             + "          <MeasureID>Agg Disk Used</MeasureID>" + "\r\n"
+             + "          <Source xsi:type=\"ColumnBinding\">" + "\r\n"
+             + "            <TableID/>" + "\r\n"
+             + "            <ColumnID>AggDiskUsed</ColumnID>" + "\r\n"
+             + "          </Source>" + "\r\n"
+             + "        </Binding>" + "\r\n"
+             + "        <Binding xmlns=\"http://schemas.microsoft.com/analysisservices/2003/engine\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\">" + "\r\n"
+             + "          <DatabaseID>Memory Usage</DatabaseID>" + "\r\n"
+             + "          <CubeID>Memory Usage</CubeID>" + "\r\n"
+             + "          <MeasureGroupID>Memory Usage</MeasureGroupID>" + "\r\n"
+             + "          <MeasureID>Index Disk Used</MeasureID>" + "\r\n"
+             + "          <Source xsi:type=\"ColumnBinding\">" + "\r\n"
+             + "            <TableID/>" + "\r\n"
+             + "            <ColumnID>IndexDiskUsed</ColumnID>" + "\r\n"
+             + "          </Source>" + "\r\n"
+             + "        </Binding>" + "\r\n"
              + "      </Bindings>" + "\r\n"
              + "      <DataSource xsi:type=\"PushedDataSource\">" + "\r\n"
              + "        <root Parameter=\"InputRowset\"/>" + "\r\n"
@@ -1198,6 +1264,8 @@ namespace ASStoredProcs
              + "            <xsd:element sql:field=\"MemoryAllocFromAlloc\" name=\"MemoryAllocFromAlloc\" type=\"xsd:unsignedLong\" minOccurs=\"0\" />" + "\r\n"
              + "            <xsd:element sql:field=\"ElementCount\" name=\"ElementCount\" type=\"xsd:unsignedInt\" minOccurs=\"0\" />" + "\r\n"
              + "            <xsd:element sql:field=\"Shrinkable\" name=\"Shrinkable\" type=\"xsd:string\" minOccurs=\"0\" />" + "\r\n"
+             + "            <xsd:element sql:field=\"ObjectParentPath\" name=\"ObjectParentPath\" type=\"xsd:string\" minOccurs=\"0\" />" + "\r\n"
+             + "            <xsd:element sql:field=\"ObjectId\" name=\"ObjectId\" type=\"xsd:string\" minOccurs=\"0\" />" + "\r\n"
              + "            <xsd:element sql:field=\"ShrinkableMemory\" name=\"ShrinkableMemory\" type=\"xsd:unsignedLong\" minOccurs=\"0\" />" + "\r\n"
              + "            <xsd:element sql:field=\"Folder1\" name=\"Folder1\" type=\"xsd:string\" minOccurs=\"0\" />" + "\r\n"
              + "            <xsd:element sql:field=\"Folder2\" name=\"Folder2\" type=\"xsd:string\" minOccurs=\"0\" />" + "\r\n"
@@ -1213,6 +1281,9 @@ namespace ASStoredProcs
              + "            <xsd:element sql:field=\"FileExtension\" name=\"FileExtension\" type=\"xsd:string\" minOccurs=\"0\" />" + "\r\n"
              + "            <xsd:element sql:field=\"User\" name=\"User\" type=\"xsd:string\" minOccurs=\"0\" />" + "\r\n"
              + "            <xsd:element sql:field=\"DiskUsed\" name=\"DiskUsed\" type=\"xsd:unsignedLong\" minOccurs=\"0\" />" + "\r\n"
+             + "            <xsd:element sql:field=\"DataDiskUsed\" name=\"DataDiskUsed\" type=\"xsd:unsignedLong\" minOccurs=\"0\" />" + "\r\n"
+             + "            <xsd:element sql:field=\"AggDiskUsed\" name=\"AggDiskUsed\" type=\"xsd:unsignedLong\" minOccurs=\"0\" />" + "\r\n"
+             + "            <xsd:element sql:field=\"IndexDiskUsed\" name=\"IndexDiskUsed\" type=\"xsd:unsignedLong\" minOccurs=\"0\" />" + "\r\n"
              + "          </xsd:sequence>" + "\r\n"
              + "        </xsd:complexType>" + "\r\n"
              + "      </xsd:schema>" + "\r\n"
@@ -1307,6 +1378,7 @@ namespace ASStoredProcs
 
         private void LoadSessions()
         {
+            Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 4, "Starting LoadSessions");
             AdomdClient.AdomdConnection conn = new AdomdClient.AdomdConnection("Data Source=" + AdomdServer.Context.CurrentServerID);
             conn.Open();
             DataSet ds = conn.GetSchemaDataSet("DISCOVER_SESSIONS", null);
@@ -1315,6 +1387,7 @@ namespace ASStoredProcs
             {
                 sessions.Add(Convert.ToInt32(dr["SESSION_SPID"]), Convert.ToString(dr["SESSION_USER_NAME"]));
             }
+            Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 5, "Finishing LoadSessions");
         }
 
         private string GetUserForSPID(int SPID)
@@ -1335,26 +1408,37 @@ namespace ASStoredProcs
         //All metadata files will be in the DataDir, even when the StorageLocation is changed, I think
         private Dictionary<string, ASXmlDescriptorFileInfo> ScanXmlFilesInDataDir()
         {
-            Dictionary<string, ASXmlDescriptorFileInfo> dict = new Dictionary<string, ASXmlDescriptorFileInfo>();
-
-            foreach (string file in System.IO.Directory.GetFiles(svr.ServerProperties["DataDir"].Value, "*.xml", System.IO.SearchOption.AllDirectories))
+            try
             {
-                ASXmlDescriptorFileInfo info = ProcessXmlFile(new System.IO.FileInfo(file));
-                if (info != null)
+                Dictionary<string, ASXmlDescriptorFileInfo> dict = new Dictionary<string, ASXmlDescriptorFileInfo>();
+
+                foreach (string file in System.IO.Directory.GetFiles(svr.ServerProperties["DataDir"].Value, "*.xml", System.IO.SearchOption.AllDirectories))
                 {
-                    if (!dict.ContainsKey(info.DirectoryName))
-                        dict.Add(info.DirectoryName, info);
+                    ASXmlDescriptorFileInfo info = ProcessXmlFile(new System.IO.FileInfo(file));
+                    if (info != null)
+                    {
+                        if (!dict.ContainsKey(info.DirectoryName))
+                            dict.Add(info.DirectoryName, info);
+                    }
                 }
+                return dict;
             }
-            return dict;
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message + "\r\n" + ex.StackTrace, ex);
+            }
         }
 
         private void DiscoverMemoryUsage()
         {
+            Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 6, "Starting scan of XML files in DataDir");
             dictXmlDefinitionFiles = ScanXmlFilesInDataDir();
+            Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 7, "Finished scan of XML files in DataDir");
 
             ProcessAddSnapshotDate();
+            Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 9, "Finished adding snapshot date");
 
+            Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 10, "Setting up DISCOVER_MEMORYUSAGE");
             string sCmd = "<Envelope xmlns=\"http://schemas.xmlsoap.org/soap/envelope/\"><Body>"
              + "<Discover xmlns=\"urn:schemas-microsoft-com:xml-analysis\">"
              + " <RequestType>DISCOVER_MEMORYUSAGE</RequestType>"
@@ -1370,9 +1454,13 @@ namespace ASStoredProcs
                 server.Connect("Data Source=" + AdomdServer.Context.CurrentServerID); //need to open a separate connection for the discover memory usage because it will be open while the main session is running process commands
 
                 System.IO.MemoryStream ms = new System.IO.MemoryStream(System.Text.Encoding.ASCII.GetBytes(sCmd));
+                Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 11, "Starting DISCOVER_MEMORYUSAGE");
                 reader = server.SendXmlaRequest(Microsoft.AnalysisServices.XmlaRequestType.Discover, ms);
+                Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 12, "Reading first row from DISCOVER_MEMORYUSAGE");
+                if (reader == null) throw new Exception("XMLA reader returned null");
                 reader.ReadToFollowing("row");
 
+                Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 13, "Finished reading first row from DISCOVER_MEMORYUSAGE");
                 int iTotalCombinedMemoryRowIDs = 0;
                 XmlDocument xml = new XmlDocument(reader.NameTable);
                 xml.AppendChild(xml.CreateElement("row", "urn:schemas-microsoft-com:xml-analysis:rowset"));
@@ -1442,6 +1530,7 @@ namespace ASStoredProcs
                     el.InnerText = GetUserForSPID(int.Parse(GetInnerTextFromChildElement(xml.DocumentElement, "SPID")));
                     if (el.InnerText != String.Empty) xml.DocumentElement.AppendChild(el);
 
+                    Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 15, "Getting row signature from DISCOVER_MEMORYUSAGE");
                     string signature = GetRowDimensionSignature(xml.DocumentElement);
                     if (dictExistingMemoryRowID.ContainsKey(signature))
                     {
@@ -1460,12 +1549,16 @@ namespace ASStoredProcs
                     ProcessRow(xml.DocumentElement);
                 }
 
+                Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 18, "Disk sizes DISCOVER_MEMORYUSAGE");
                 foreach (ASXmlDescriptorFileInfo info in dictXmlDefinitionFiles.Values)
                 {
                     if (info.SubDirectorySuffix == "prt" || info.SubDirectorySuffix == "dim" || info.SubDirectorySuffix == "dms")
                     {
                         //sum up sizes of all files for this object
                         long directorySize = 0;
+                        long dataDirectorySize = 0;
+                        long aggDirectorySize = 0;
+                        long indexDirectorySize = 0;
                         try
                         {
                             directorySize = (new System.IO.FileInfo(info.XmlFilePath)).Length; //start with the size of the descriptor XML file size
@@ -1476,11 +1569,25 @@ namespace ASStoredProcs
                             foreach (System.IO.FileInfo file in new System.IO.DirectoryInfo(info.DirectoryName).GetFiles())
                             {
                                 directorySize += file.Length;
+
+                                //split into data, agg, index
+                                if (file.Name.EndsWith(".fact.data") || file.Name.EndsWith(".fact.data.hdr") || file.Name.EndsWith(".string.data"))
+                                {
+                                    dataDirectorySize += file.Length;
+                                }
+                                else if (file.Name.EndsWith(".agg.flex.data") || file.Name.EndsWith(".agg.flex.data.hdr") || file.Name.EndsWith(".agg.rigid.data") || file.Name.EndsWith(".agg.rigid.data.hdr"))
+                                {
+                                    aggDirectorySize += file.Length;
+                                }
+                                else //TODO: just being lazy for now
+                                {
+                                    indexDirectorySize += file.Length;
+                                }
                             }
                         }
                         catch { }
 
-                        XmlElement xmlDiskUsage = info.GetDiskUsageRowXml(this.SnapshotDate, ++iMaxMemoryRowID, directorySize);
+                        XmlElement xmlDiskUsage = info.GetDiskUsageRowXml(this.SnapshotDate, ++iMaxMemoryRowID, directorySize, dataDirectorySize, aggDirectorySize, indexDirectorySize);
                         string signature = GetRowDimensionSignature(xmlDiskUsage);
                         if (dictExistingMemoryRowID.ContainsKey(signature))
                         {
@@ -1491,9 +1598,13 @@ namespace ASStoredProcs
                         ProcessRow(xmlDiskUsage);
                     }
                 }
+                Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 18, "Finished disk sizes DISCOVER_MEMORYUSAGE");
 
+                Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 19, "ProcessBatch DISCOVER_MEMORYUSAGE");
                 ProcessBatch();
+                Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 20, "ProcessIndexes DISCOVER_MEMORYUSAGE");
                 ProcessIndexes();
+                Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 21, "Finished DISCOVER_MEMORYUSAGE");
             }
             finally
             {
@@ -1521,6 +1632,8 @@ namespace ASStoredProcs
 
         private void LoadExistingMemoryDimensionSignatures()
         {
+            Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 1, "Starting LoadExistingMemoryDimensionSignatures");
+
             //retrieve all the existing dimension members
             AdomdClient.AdomdCommand cmd = new AdomdClient.AdomdCommand("with member [Measures].[Must Have A Measure] as null select [Measures].[Must Have A Measure] on 0, Leaves([Memory]) properties MEMBER_CAPTION, [Memory].[Memory Name].[Key0] on 1 from [$Memory]");
             try
@@ -1556,7 +1669,10 @@ namespace ASStoredProcs
                 }
                 dr.Close();
             }
-            catch { }
+            catch
+            {
+                Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 2, "Caught error in LoadExistingMemoryDimensionSignatures");
+            }
             finally
             {
                 try
@@ -1565,6 +1681,7 @@ namespace ASStoredProcs
                 }
                 catch { }
             }
+            Microsoft.AnalysisServices.AdomdServer.Context.TraceEvent(0, 3, "Finishing LoadExistingMemoryDimensionSignatures");
         }
 
         private string ObjToString(object obj)
@@ -1852,7 +1969,7 @@ namespace ASStoredProcs
                 if (el.InnerText != String.Empty) doc.DocumentElement.AppendChild(el);
             }
 
-            public XmlElement GetDiskUsageRowXml(DateTime SnapshotDt, long iMemoryRowID, long diskUsed)
+            public XmlElement GetDiskUsageRowXml(DateTime SnapshotDt, long iMemoryRowID, long diskUsed, long dataDiskUsed, long aggDiskUsed, long indexDiskUsed)
             {
                 XmlDocument doc = new XmlDocument();
                 doc.LoadXml("<row></row>");
@@ -1889,6 +2006,15 @@ namespace ASStoredProcs
                 if (el.InnerText != String.Empty) doc.DocumentElement.AppendChild(el);
                 el = doc.CreateElement("DiskUsed", "urn:schemas-microsoft-com:xml-analysis:rowset");
                 el.InnerText = diskUsed.ToString();
+                if (el.InnerText != String.Empty) doc.DocumentElement.AppendChild(el);
+                el = doc.CreateElement("DataDiskUsed", "urn:schemas-microsoft-com:xml-analysis:rowset");
+                el.InnerText = dataDiskUsed.ToString();
+                if (el.InnerText != String.Empty) doc.DocumentElement.AppendChild(el);
+                el = doc.CreateElement("AggDiskUsed", "urn:schemas-microsoft-com:xml-analysis:rowset");
+                el.InnerText = aggDiskUsed.ToString();
+                if (el.InnerText != String.Empty) doc.DocumentElement.AppendChild(el);
+                el = doc.CreateElement("IndexDiskUsed", "urn:schemas-microsoft-com:xml-analysis:rowset");
+                el.InnerText = indexDiskUsed.ToString();
                 if (el.InnerText != String.Empty) doc.DocumentElement.AppendChild(el);
                 return doc.DocumentElement;
             }

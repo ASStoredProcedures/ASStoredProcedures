@@ -3,7 +3,17 @@ call ASSP.GetFileSystemCacheBytes()
 
 GO
 
-//clears the size of the Windows File System Cache
+//clears the active Windows File System Cache
+call ASSP.ClearFileSystemCache(false)
+
+GO
+
+//checks the size of the Windows File System Cache
+call ASSP.GetFileSystemCacheBytes()
+
+GO
+
+//clears the active and standby Windows File System Cache
 call ASSP.ClearFileSystemCache()
 
 GO
@@ -15,3 +25,8 @@ GO
 
 //clears the Analysis Services cache for the current database using the ClearCache XMLA command internally
 call ASSP.ClearCache()
+
+GO
+
+//clears the Analysis Services cache, the active, and the standby Windows File System Cache
+call ASSP.ClearAllCaches()
