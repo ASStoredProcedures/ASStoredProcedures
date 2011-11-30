@@ -32,10 +32,13 @@ namespace ASStoredProcs
 
         //FindCurrentMember returns a comma-delimited list of the uniquenames of the currentmember on every attribute hierarchy
         //on every dimension
+        [SafeToPrepare(true)]
         public static string FindCurrentMember()
         {
             return FindCurrentMember(DEFAULT_SEPARATOR);
         }
+
+        [SafeToPrepare(true)]
         public static string FindCurrentMember(string separator)
         {
             string output = "";
@@ -52,6 +55,7 @@ namespace ASStoredProcs
 
         //FindCurrentMemberVerbose does the same thing as FindCurrentMember, but also displays the name
         //of the dimension and hierarchy and the caption of the currentmember
+        [SafeToPrepare(true)]
         public static string FindCurrentMemberVerbose()
         {
             string output = "";
@@ -67,6 +71,7 @@ namespace ASStoredProcs
 
         //FindCurrentMember returns a comma-delimited list of the uniquenames of the currentmember on every attribute hierarchy
         //on every dimension
+        [SafeToPrepare(true)]
         public static string FindCurrentTuple()
         {
             string output = "(";

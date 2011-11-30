@@ -27,6 +27,7 @@ namespace ASStoredProcs
     public class CubeInfo
     {
         //the assembly must be registered with unrestricted permissions for this function to succeed
+        [SafeToPrepare(true)]
         public static DateTime GetCubeLastProcessedDate()
         {
             string sServerName = Context.CurrentServerID;
@@ -64,7 +65,8 @@ namespace ASStoredProcs
             return dtTemp;
             //return Context.CurrentCube.LastProcessed; //this doesn't work because of a bug: https://connect.microsoft.com/SQLServer/feedback/ViewFeedback.aspx?FeedbackID=124606
         }
-        
+
+        [SafeToPrepare(true)]
         public static DateTime GetMeasureGroupLastProcessedDate(string MeasureGroupName)
         {
             string sServerName = Context.CurrentServerID;

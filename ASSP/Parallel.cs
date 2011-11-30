@@ -26,7 +26,7 @@ namespace ASStoredProcs
 {
     public class Parallel
     {
-
+        [SafeToPrepare(true)]
         public static Microsoft.AnalysisServices.AdomdServer.Set ParallelGenerate(Microsoft.AnalysisServices.AdomdServer.Set IterationSet, string SetExpression)
         {
             List<ParallelQueryThreadInfo> threadInfos = new List<ParallelQueryThreadInfo>();
@@ -71,6 +71,7 @@ namespace ASStoredProcs
             return MDX.StrToSet(sFinalSet.ToString());
         }
 
+        [SafeToPrepare(true)]
         public static Microsoft.AnalysisServices.AdomdServer.Set ParallelUnion(string SetExpression1, string SetExpression2)
         {
             List<ParallelQueryThreadInfo> threadInfos = new List<ParallelQueryThreadInfo>();

@@ -34,6 +34,7 @@ namespace ASStoredProcs
         //return slightly different values each time you run it, and you'll also see the effects of the caching that
         //Analysis Services does between queries as well as the caching it does inside each query when retrieving
         //cell values unaffected by any calculation. 
+        [SafeToPrepare(true)]
         public static long TimeToCalculate(Tuple tupleToEvaluate)
         {
             Stopwatch stp = new Stopwatch();

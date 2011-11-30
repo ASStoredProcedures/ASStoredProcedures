@@ -1,33 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2005/01/reportdefinition" xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner">
+<Report xmlns:rd="http://schemas.microsoft.com/SQLServer/reporting/reportdesigner" xmlns="http://schemas.microsoft.com/sqlserver/reporting/2008/01/reportdefinition">
   <DataSources>
-    <DataSource Name="Adventure Works Cube">
-      <rd:DataSourceID>d4673f19-7cc6-4f24-9264-e3bd1ff73ad6</rd:DataSourceID>
+    <DataSource Name="Adventure_Works_Cube">
       <DataSourceReference>Adventure Works Cube</DataSourceReference>
+      <rd:DataSourceID>d4673f19-7cc6-4f24-9264-e3bd1ff73ad6</rd:DataSourceID>
+      <rd:SecurityType>None</rd:SecurityType>
     </DataSource>
   </DataSources>
-  <InteractiveHeight>29.7cm</InteractiveHeight>
-  <ReportParameters>
-    <ReportParameter Name="DatabaseId">
-      <DataType>String</DataType>
-      <AllowBlank>true</AllowBlank>
-      <Prompt>DatabaseID</Prompt>
-    </ReportParameter>
-    <ReportParameter Name="RoleId">
-      <DataType>String</DataType>
-      <AllowBlank>true</AllowBlank>
-      <Prompt>RoleID</Prompt>
-    </ReportParameter>
-  </ReportParameters>
-  <rd:DrawGrid>true</rd:DrawGrid>
-  <InteractiveWidth>21cm</InteractiveWidth>
-  <rd:GridSpacing>0.25cm</rd:GridSpacing>
-  <rd:SnapToGrid>true</rd:SnapToGrid>
-  <RightMargin>2.5cm</RightMargin>
-  <LeftMargin>2.5cm</LeftMargin>
-  <BottomMargin>2.5cm</BottomMargin>
-  <rd:ReportID>cda14fe2-9bb4-4ee0-a3f7-31650e92a875</rd:ReportID>
-  <PageWidth>21cm</PageWidth>
   <DataSets>
     <DataSet Name="dsRoles">
       <Fields>
@@ -57,46 +36,83 @@
         </Field>
       </Fields>
       <Query>
-        <DataSourceName>Adventure Works Cube</DataSourceName>
+        <DataSourceName>Adventure_Works_Cube</DataSourceName>
         <CommandText>="call assp.discoverxmlmetadatafull(""\Database\Roles\Role|Name\Members\Member"" , """", ""&lt;DatabaseID&gt;"  &amp; Parameters!DatabaseId.Value &amp; "&lt;/DatabaseID&gt;"")"</CommandText>
         <rd:SuppressAutoUpdate>true</rd:SuppressAutoUpdate>
       </Query>
     </DataSet>
   </DataSets>
-  <Width>9.75cm</Width>
   <Body>
-    <ColumnSpacing>1cm</ColumnSpacing>
     <ReportItems>
-      <Textbox Name="RoleName">
-        <rd:DefaultName>RoleName</rd:DefaultName>
-        <Width>2.53968cm</Width>
-        <Style>
-          <PaddingLeft>2pt</PaddingLeft>
-          <PaddingRight>2pt</PaddingRight>
-          <PaddingTop>2pt</PaddingTop>
-          <PaddingBottom>2pt</PaddingBottom>
-        </Style>
-        <ZIndex>1</ZIndex>
-        <CanGrow>true</CanGrow>
-        <Height>0.63492cm</Height>
-        <Value>=First(Fields!RoleName.Value)</Value>
-      </Textbox>
-      <List Name="list1">
+      <Tablix Name="list1">
+        <TablixBody>
+          <TablixColumns>
+            <TablixColumn>
+              <Width>3.83858in</Width>
+            </TablixColumn>
+          </TablixColumns>
+          <TablixRows>
+            <TablixRow>
+              <Height>0.21654in</Height>
+              <TablixCells>
+                <TablixCell>
+                  <CellContents>
+                    <Rectangle Name="list1_Contents">
+                      <ReportItems>
+                        <Textbox Name="Name">
+                          <CanGrow>true</CanGrow>
+                          <KeepTogether>true</KeepTogether>
+                          <Paragraphs>
+                            <Paragraph>
+                              <TextRuns>
+                                <TextRun>
+                                  <Value>=Fields!Name.Value</Value>
+                                  <Style />
+                                </TextRun>
+                              </TextRuns>
+                              <Style>
+                                <TextAlign>Left</TextAlign>
+                              </Style>
+                            </Paragraph>
+                          </Paragraphs>
+                          <rd:DefaultName>Name</rd:DefaultName>
+                          <Height>0.55cm</Height>
+                          <Width>9.75cm</Width>
+                          <Style>
+                            <PaddingLeft>2pt</PaddingLeft>
+                            <PaddingRight>2pt</PaddingRight>
+                            <PaddingTop>2pt</PaddingTop>
+                            <PaddingBottom>2pt</PaddingBottom>
+                          </Style>
+                        </Textbox>
+                      </ReportItems>
+                      <KeepTogether>true</KeepTogether>
+                      <Style />
+                    </Rectangle>
+                  </CellContents>
+                </TablixCell>
+              </TablixCells>
+            </TablixRow>
+          </TablixRows>
+        </TablixBody>
+        <TablixColumnHierarchy>
+          <TablixMembers>
+            <TablixMember />
+          </TablixMembers>
+        </TablixColumnHierarchy>
+        <TablixRowHierarchy>
+          <TablixMembers>
+            <TablixMember>
+              <Group Name="list1_Details_Group">
+                <DataElementName>Item</DataElementName>
+              </Group>
+              <DataElementName>Item_Collection</DataElementName>
+              <DataElementOutput>Output</DataElementOutput>
+              <KeepTogether>true</KeepTogether>
+            </TablixMember>
+          </TablixMembers>
+        </TablixRowHierarchy>
         <DataSetName>dsRoles</DataSetName>
-        <ReportItems>
-          <Textbox Name="Name">
-            <rd:DefaultName>Name</rd:DefaultName>
-            <Style>
-              <TextAlign>Left</TextAlign>
-              <PaddingLeft>2pt</PaddingLeft>
-              <PaddingRight>2pt</PaddingRight>
-              <PaddingTop>2pt</PaddingTop>
-              <PaddingBottom>2pt</PaddingBottom>
-            </Style>
-            <CanGrow>true</CanGrow>
-            <Value>=Fields!Name.Value</Value>
-          </Textbox>
-        </ReportItems>
         <Filters>
           <Filter>
             <FilterExpression>=Fields!Parent_RoleID.Value</FilterExpression>
@@ -107,11 +123,64 @@
           </Filter>
         </Filters>
         <Top>0.75cm</Top>
-      </List>
+        <Height>0.55cm</Height>
+        <Width>9.75cm</Width>
+        <Style />
+      </Tablix>
+      <Textbox Name="RoleName">
+        <CanGrow>true</CanGrow>
+        <KeepTogether>true</KeepTogether>
+        <Paragraphs>
+          <Paragraph>
+            <TextRuns>
+              <TextRun>
+                <Value>=First(Fields!RoleName.Value)</Value>
+                <Style />
+              </TextRun>
+            </TextRuns>
+            <Style />
+          </Paragraph>
+        </Paragraphs>
+        <rd:DefaultName>RoleName</rd:DefaultName>
+        <Height>0.63492cm</Height>
+        <Width>2.53968cm</Width>
+        <ZIndex>1</ZIndex>
+        <Style>
+          <PaddingLeft>2pt</PaddingLeft>
+          <PaddingRight>2pt</PaddingRight>
+          <PaddingTop>2pt</PaddingTop>
+          <PaddingBottom>2pt</PaddingBottom>
+        </Style>
+      </Textbox>
     </ReportItems>
     <Height>1.3cm</Height>
+    <Style />
   </Body>
+  <ReportParameters>
+    <ReportParameter Name="DatabaseId">
+      <DataType>String</DataType>
+      <AllowBlank>true</AllowBlank>
+      <Prompt>DatabaseID</Prompt>
+    </ReportParameter>
+    <ReportParameter Name="RoleId">
+      <DataType>String</DataType>
+      <AllowBlank>true</AllowBlank>
+      <Prompt>RoleID</Prompt>
+    </ReportParameter>
+  </ReportParameters>
+  <Width>9.75cm</Width>
+  <Page>
+    <PageHeight>29.7cm</PageHeight>
+    <PageWidth>21cm</PageWidth>
+    <LeftMargin>2.5cm</LeftMargin>
+    <RightMargin>2.5cm</RightMargin>
+    <TopMargin>2.5cm</TopMargin>
+    <BottomMargin>2.5cm</BottomMargin>
+    <ColumnSpacing>1cm</ColumnSpacing>
+    <Style />
+  </Page>
   <Language>en-US</Language>
-  <TopMargin>2.5cm</TopMargin>
-  <PageHeight>29.7cm</PageHeight>
+  <ConsumeContainerWhitespace>true</ConsumeContainerWhitespace>
+  <rd:ReportID>cda14fe2-9bb4-4ee0-a3f7-31650e92a875</rd:ReportID>
+  <rd:ReportUnitType>Cm</rd:ReportUnitType>
 </Report>

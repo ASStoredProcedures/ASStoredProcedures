@@ -27,37 +27,37 @@ namespace ASStoredProcs
     public class Sets
     {
         #region "Public Interface - allows between 2 and 8 members to be passed in"
-
+        [SafeToPrepare(true)]
         public static Set AsymmetricSet(Member member1, Member member2, Member member3, Member member4, Member member5, Member member6, Member member7, Member member8)
         {
             return buildAsymmetricSet(new Member[] { member1, member2, member3, member4, member5, member6, member7, member8 });
         }
-
+        [SafeToPrepare(true)]
         public static Set AsymmetricSet(Member member1, Member member2, Member member3, Member member4, Member member5, Member member6, Member member7)
         {
             return buildAsymmetricSet(new Member[] { member1, member2, member3, member4, member5, member6, member7 });
         }
-
+        [SafeToPrepare(true)]
         public static Set AsymmetricSet(Member member1, Member member2, Member member3, Member member4,Member member5,Member member6)
         {
             return buildAsymmetricSet(new Member[] { member1, member2, member3, member4,member5,member6 });
         }
-        
+        [SafeToPrepare(true)]
         public static Set AsymmetricSet(Member member1, Member member2, Member member3, Member member4,Member member5)
         {
             return buildAsymmetricSet(new Member[] { member1, member2, member3, member4,member5 });
         }
-
+        [SafeToPrepare(true)]
         public static Set AsymmetricSet(Member member1, Member member2, Member member3, Member member4)
         {
             return buildAsymmetricSet(new Member[] { member1, member2, member3, member4 });
         }
-
+        [SafeToPrepare(true)]
         public static Set AsymmetricSet(Member member1, Member member2, Member member3)
         {
             return buildAsymmetricSet(new Member[] { member1, member2,member3 });
         }
-
+        [SafeToPrepare(true)]
         public static Set AsymmetricSet(Member member1, Member member2)
         {
             return buildAsymmetricSet(new Member[]{member1,member2});
@@ -65,6 +65,7 @@ namespace ASStoredProcs
         #endregion
 
         #region "Public Interface - allows a tuple to be passed in"
+        [SafeToPrepare(true)]
         public static Set AsymmetricSet(Tuple t)
         {
             Member[] mbrs = new Member[t.Members.Count];
@@ -79,36 +80,37 @@ namespace ASStoredProcs
         
 
         #region "Public Interface - allows between 2 and 8 sets to be passed in"
+        [SafeToPrepare(true)]
         public static Set AsymmetricSet(Set set1, Set set2, Set set3, Set set4, Set set5, Set set6, Set set7, Set set8)
         {
             return buildAsymmetricSet(new Set[] { set1, set2, set3, set4, set5, set6, set7, set8 });
         }
-
+        [SafeToPrepare(true)]
         public static Set AsymmetricSet(Set set1, Set set2, Set set3, Set set4, Set set5, Set set6, Set set7)
         {
             return buildAsymmetricSet(new Set[] { set1, set2, set3, set4, set5, set6, set7});
         }
-
+        [SafeToPrepare(true)]
         public static Set AsymmetricSet(Set set1, Set set2, Set set3, Set set4, Set set5, Set set6)
         {
             return buildAsymmetricSet(new Set[] { set1, set2, set3, set4, set5, set6 });
         }
-
+        [SafeToPrepare(true)]
         public static Set AsymmetricSet(Set set1, Set set2, Set set3, Set set4, Set set5)
         {
             return buildAsymmetricSet(new Set[] { set1, set2, set3, set4, set5});
         }
-
+        [SafeToPrepare(true)]
         public static Set AsymmetricSet(Set set1, Set set2, Set set3, Set set4)
         {
             return buildAsymmetricSet(new Set[] { set1, set2, set3, set4 });
         }
-
+        [SafeToPrepare(true)]
         public static Set AsymmetricSet(Set set1, Set set2, Set set3)
         {
             return buildAsymmetricSet(new Set[] { set1, set2, set3 });
         }
-
+        [SafeToPrepare(true)]
         public static Set AsymmetricSet(Set set1, Set set2)
         {
             return buildAsymmetricSet(new Set[] { set1, set2});                        
