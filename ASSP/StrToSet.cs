@@ -12,6 +12,7 @@ namespace ASStoredProcs
         //Usage:
         //KeysStrToSet("[Product].[Product]", "1,2,3")
         //KeysStrToSet("[Product].[Product]", "{ 1,2,3 }")
+        [SafeToPrepare(true)]
         public static Set KeysStrToSet(string Hierarchy, string KeysCommaSeparated)
         {
             if (KeysCommaSeparated.StartsWith(Hierarchy, StringComparison.InvariantCultureIgnoreCase)
@@ -46,6 +47,7 @@ namespace ASStoredProcs
         //Usage:
         //CompositeKeysStrToSet("[Geography].[City]", "&[Austin]&[TX],&[Baltimore]&[MD]")
         //CompositeKeysStrToSet("[Geography].[City]", "{ &[Austin]&[TX],&[Baltimore]&[MD] }")
+        [SafeToPrepare(true)]
         public static Set CompositeKeysStrToSet(string Hierarchy, string KeysCommaSeparated)
         {
             if (KeysCommaSeparated.StartsWith(Hierarchy, StringComparison.InvariantCultureIgnoreCase)

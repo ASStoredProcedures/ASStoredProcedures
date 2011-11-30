@@ -28,6 +28,7 @@ namespace ASStoredProcs
         //works similar to the LinkMember function except that it only searches in the hierarchy specified by the second parameter and in the level which matches the level of m
         //if this function were named LinkMember, you would have to call it using brackets like ASSP.[LinkMember] (because of conflicts with the standard MDX LinkMember function)
         //using a string as the second parameter instead of a Hierarchy object avoids a 50x decrease in performance
+        [SafeToPrepare(true)]
         public static Member HierarchyLinkMember(Member m, string sHierarchyUniqueName)
         {
             Expression ex = new Expression();
@@ -38,6 +39,7 @@ namespace ASStoredProcs
         //works similar to the LinkMember function except that it only searches in the level which is passed in as the second parameter
         //if this function were named LinkMember, you would have to call it using brackets like ASSP.[LinkMember] (because of conflicts with the standard MDX LinkMember function)
         //using a string as the second parameter instead of a Level object avoids a 50x decrease in performance
+        [SafeToPrepare(true)]
         public static Member LevelLinkMember(Member m, string sLevelUniqueName)
         {
             Expression ex = new Expression();

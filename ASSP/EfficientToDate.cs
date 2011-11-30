@@ -37,12 +37,14 @@ namespace ASStoredProcs
         //  {[Date].[Fiscal].[2005],[Date].[Fiscal].[Q1 2006],[Date].[Fiscal].[April 2006],[Date].[Fiscal].[May 2006]}
 
         //Finds the first dimension of type Time then runs the GetEfficientToDateSet(string) function
+        [SafeToPrepare(true)]
         public static Set GetEfficientToDateSet()
         {
             return GetEfficientToDateSet(GetTimeDimensionName());
         }
 
         //For the specified dimension, gets the most efficient to date set as described above
+        [SafeToPrepare(true)]
         public static Set GetEfficientToDateSet(string sDimensionName)
         {
             Member oCurrentMember = GetMostGranularHierarchyCurrentMember(sDimensionName);
@@ -50,6 +52,7 @@ namespace ASStoredProcs
         }
 
         //For the specified member, gets the most efficient to date set as described above
+        [SafeToPrepare(true)]
         public static Set GetEfficientToDateSet(Member oCurrentMember)
         {
             if (oCurrentMember.UniqueName == "")
@@ -63,6 +66,7 @@ namespace ASStoredProcs
         //For the specified member, gets the most efficient periods to date set as described above
         //YourAssemblyName.GetEfficientPeriodsToDateSet("Calendar Year",[Date].[Calendar].[Month].&[2003]&[10]) returns the most efficient set that represents YTD October 2003
         //YourAssemblyName.GetEfficientPeriodsToDateSet("(All)",[Date].[Calendar].[Month].&[2003]&[10]) returns the most efficient set that represents all of time through October 2003
+        [SafeToPrepare(true)]
         public static Set GetEfficientPeriodsToDateSet(string sMinLevelName, Member oCurrentMember)
         {
             if (oCurrentMember.UniqueName == "")
@@ -73,6 +77,7 @@ namespace ASStoredProcs
         }
 
         //For the specified member, gets the most efficient year to date set as described above
+        [SafeToPrepare(true)]
         public static Set GetEfficientYearToDateSet(Member oCurrentMember)
         {
             if (oCurrentMember.UniqueName == "")
@@ -83,6 +88,7 @@ namespace ASStoredProcs
         }
 
         //For the specified member, gets the most efficient quarter to date set as described above
+        [SafeToPrepare(true)]
         public static Set GetEfficientQuarterToDateSet(Member oCurrentMember)
         {
             if (oCurrentMember.UniqueName == "")
@@ -93,6 +99,7 @@ namespace ASStoredProcs
         }
 
         //For the specified member, gets the most efficient month to date set as described above
+        [SafeToPrepare(true)]
         public static Set GetEfficientMonthToDateSet(Member oCurrentMember)
         {
             if (oCurrentMember.UniqueName == "")

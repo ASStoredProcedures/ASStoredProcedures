@@ -41,11 +41,13 @@ namespace ASStoredProcs
         /// <param name="valueToMatch">This is a string expression which </param>
         /// <param name="pattern">This paramter uses a pattern in the same form as the T-SQL LIKE operator</param>
         /// <returns>Boolean</returns>
+        [SafeToPrepare(true)]
         public Boolean IsLike(String valueToMatch, String pattern)
         {
             return IsLike(valueToMatch, pattern, false);
         }
 
+        [SafeToPrepare(true)]
         public Boolean IsLike(String valueToMatch, String pattern, Boolean caseSensitive)
         {
             Context.TraceEvent(100, 0, "IsLike: Starting");
@@ -57,11 +59,13 @@ namespace ASStoredProcs
             return (Boolean) r.Match(valueToMatch).Success;
         }
 
+        [SafeToPrepare(true)]
         public static Set Like(Set setToFilter, String pattern, Expression exp)
         {
             return Like(setToFilter, pattern, exp, false);
         }
 
+        [SafeToPrepare(true)]
         public static Set Like(Set setToFilter, String pattern, Expression exp, Boolean caseSensitive)
         {
             return RegExFilter(setToFilter, LikeToRegEx(pattern), exp, caseSensitive);
@@ -69,11 +73,13 @@ namespace ASStoredProcs
         #endregion
 
         #region " Public 'Regex' functions"
+        [SafeToPrepare(true)]
         public static Set RegExFilter(Set setToFilter, String pattern, Expression exp)
         {
             return RegExFilter(setToFilter, pattern, exp, false);
         }
 
+        [SafeToPrepare(true)]
         public static Set RegExFilter(Set setToFilter, String pattern, Expression exp, Boolean caseSensitive)
         {
             Context.TraceEvent(100, 0, "RegExFilter: Starting");

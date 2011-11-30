@@ -23,6 +23,7 @@ namespace ASStoredProcs
     public class SetOperations
     {
         // This function reverses the set
+        [SafeToPrepare(true)]
         public Set ReverseSet(Set InputSet)
         {
             SetBuilder sb = new SetBuilder();
@@ -42,6 +43,7 @@ namespace ASStoredProcs
             return sb.ToSet();
         }
 
+        [SafeToPrepare(true)]
         public Set InverseHierarchility(Set InputSet)
         {
             int c = InputSet.Hierarchies.Count;
@@ -62,6 +64,7 @@ namespace ASStoredProcs
             return sb.ToSet();
         }
 
+        [SafeToPrepare(true)]
         public Set RandomSample(Set InputSet, int k)
         {
             int n = InputSet.Tuples.Count;
@@ -85,6 +88,7 @@ namespace ASStoredProcs
             return sb.ToSet();
         }
 
+        [SafeToPrepare(true)]
         public Set AsymmetricDrillDown(Set InputSet, int TupleIndex, int HierarchyIndex)
         {
             int cHier = InputSet.Hierarchies.Count;
@@ -118,12 +122,13 @@ namespace ASStoredProcs
             return sb.ToSet();
         }
 
-
+        [SafeToPrepare(true)]
         public static Set Order(Set InputSet, Expression SortExpression)
         {
             return Order(InputSet, SortExpression, false);
         }
 
+        [SafeToPrepare(true)]
         public static Set Order(Set InputSet, Expression SortExpression, bool SortDescending)
         {
             List<TupleValue> TupleValues = new List<TupleValue>();
@@ -166,6 +171,7 @@ namespace ASStoredProcs
             return sb.ToSet();
         }
 
+        [SafeToPrepare(true)]
         public decimal RatioToParent(Set axis, Expression exp)
         {
             Hierarchy h = null;
@@ -194,6 +200,7 @@ namespace ASStoredProcs
         // The usage should be exactly same as the native MDX function TopCount.
         // The only difference is the function will return the tied up value if the Nth tuple
         // has the duplicated value
+        [SafeToPrepare(true)]
         public static Set TopCountWithTies(Set InputSet, int NCount, Expression SortExpression)
         {
             return TopCountWithTiesInternal(InputSet, NCount, SortExpression, false);
@@ -202,11 +209,13 @@ namespace ASStoredProcs
         // The usage should be exactly same as the native MDX function BottomCount.
         // The only difference is the function will return the tied up value if the Nth tuple
         // has the duplicated value
+        [SafeToPrepare(true)]
         public static Set BottomCountWithTies(Set InputSet, int NCount, Expression SortExpression)
         {
             return TopCountWithTiesInternal(InputSet, NCount, SortExpression, true);
         }
 
+        [SafeToPrepare(true)]
         private static Set TopCountWithTiesInternal(Set InputSet, int NCount, Expression SortExpression, bool Desc)
         {
             List<TupleValue> TupleValues = new List<TupleValue>();

@@ -29,6 +29,7 @@ namespace ASStoredProcs
         //Multiply() multiplies the value Expression for each member of inputSet
         //This is useful for calculations such as compound growths, and (limited) testing shows that
         //using this function is much faster than implementing the same calculation in pure MDX using recursion
+        [SafeToPrepare(true)]
         public static double Multiply(Set inputSet, Expression inputExpression)
         {
             double result = 1;

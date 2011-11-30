@@ -135,6 +135,7 @@ namespace ASStoredProcs
             }
         }
 
+        [SafeToPrepare(true)]
         private static DataTable GetClusterCharacteristics(string strModel, string strClusterUniqueID, double dThreshold)
         {
             //if we don't know the path to the system data mining sprocs assembly, get it
