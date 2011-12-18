@@ -137,10 +137,10 @@ namespace ASStoredProcs
                         addParentIdColumns(dq, dt, n);
                         tableBuilt = true;
                         // If this is a prepare call, we only need to return an empty table
-                        if (prepareOnly)
-                        {
-                            return dt;
-                        }
+                        //if (prepareOnly)
+                        //{
+                        //    return dt;
+                        //}
                     }
                 }
             }
