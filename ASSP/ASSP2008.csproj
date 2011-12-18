@@ -85,6 +85,7 @@
     <Compile Include="DMVParser\Tokenizer\Token.cs" />
     <Compile Include="DMVParser\Tokenizer\Tokenizer.cs" />
     <Compile Include="DMVParser\Tokenizer\WhiteSpaceState.cs" />
+    <Compile Include="TraceEvent.cs" />
     <Compile Include="Utilities\TimeoutUtility.cs" />
     <Compile Include="Utilities\PriorityQueue.cs" />
     <Compile Include="SetOperations.cs" />
