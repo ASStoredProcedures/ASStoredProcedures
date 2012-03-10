@@ -1,0 +1,62 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASSP2012", "ASSP2012.csproj", "{68EC6D8C-1A61-426B-A8C8-68390665F01C}"
+EndProject
+Project("{F14B399A-7131-4C87-9E4B-1186C45EF12D}") = "ASSP Reports 2012", "..\ASSP Reports\ASSP Reports 2012.rptproj", "{B1D1A38E-4106-49E2-BE6B-4933E000AFC0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SQLQuery2012", "..\SQLQuery\SQLQuery2012.csproj", "{F6B65BCC-5C04-400C-89E6-72338D774662}"
+EndProject
+Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 4
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://tfs.codeplex.com/tfs/tfs01
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = ASSP2012.csproj
+		SccLocalPath1 = .
+		SccProjectUniqueName2 = ..\\ASSP\u0020Reports\\ASSP\u0020Reports\u00202012.rptproj
+		SccProjectName2 = ../ASSP\u0020Reports
+		SccLocalPath2 = ..\\ASSP\u0020Reports
+		SccProjectUniqueName3 = ..\\SQLQuery\\SQLQuery2012.csproj
+		SccProjectName3 = ../SQLQuery
+		SccLocalPath3 = ..\\SQLQuery
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		DebugLocal|Any CPU = DebugLocal|Any CPU
+		Production|Any CPU = Production|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{68EC6D8C-1A61-426B-A8C8-68390665F01C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68EC6D8C-1A61-426B-A8C8-68390665F01C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68EC6D8C-1A61-426B-A8C8-68390665F01C}.DebugLocal|Any CPU.ActiveCfg = Debug|Any CPU
+		{68EC6D8C-1A61-426B-A8C8-68390665F01C}.DebugLocal|Any CPU.Build.0 = Debug|Any CPU
+		{68EC6D8C-1A61-426B-A8C8-68390665F01C}.Production|Any CPU.ActiveCfg = Release|Any CPU
+		{68EC6D8C-1A61-426B-A8C8-68390665F01C}.Production|Any CPU.Build.0 = Release|Any CPU
+		{68EC6D8C-1A61-426B-A8C8-68390665F01C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68EC6D8C-1A61-426B-A8C8-68390665F01C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B1D1A38E-4106-49E2-BE6B-4933E000AFC0}.Debug|Any CPU.ActiveCfg = DebugLocal
+		{B1D1A38E-4106-49E2-BE6B-4933E000AFC0}.Debug|Any CPU.Build.0 = DebugLocal
+		{B1D1A38E-4106-49E2-BE6B-4933E000AFC0}.DebugLocal|Any CPU.ActiveCfg = DebugLocal
+		{B1D1A38E-4106-49E2-BE6B-4933E000AFC0}.DebugLocal|Any CPU.Build.0 = DebugLocal
+		{B1D1A38E-4106-49E2-BE6B-4933E000AFC0}.Production|Any CPU.ActiveCfg = Production
+		{B1D1A38E-4106-49E2-BE6B-4933E000AFC0}.Production|Any CPU.Build.0 = Production
+		{B1D1A38E-4106-49E2-BE6B-4933E000AFC0}.Production|Any CPU.Deploy.0 = Production
+		{B1D1A38E-4106-49E2-BE6B-4933E000AFC0}.Release|Any CPU.ActiveCfg = Production
+		{B1D1A38E-4106-49E2-BE6B-4933E000AFC0}.Release|Any CPU.Build.0 = Production
+		{B1D1A38E-4106-49E2-BE6B-4933E000AFC0}.Release|Any CPU.Deploy.0 = Production
+		{F6B65BCC-5C04-400C-89E6-72338D774662}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6B65BCC-5C04-400C-89E6-72338D774662}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6B65BCC-5C04-400C-89E6-72338D774662}.DebugLocal|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6B65BCC-5C04-400C-89E6-72338D774662}.DebugLocal|Any CPU.Build.0 = Debug|Any CPU
+		{F6B65BCC-5C04-400C-89E6-72338D774662}.Production|Any CPU.ActiveCfg = Release|Any CPU
+		{F6B65BCC-5C04-400C-89E6-72338D774662}.Production|Any CPU.Build.0 = Release|Any CPU
+		{F6B65BCC-5C04-400C-89E6-72338D774662}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6B65BCC-5C04-400C-89E6-72338D774662}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
