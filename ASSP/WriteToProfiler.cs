@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.AnalysisServices.AdomdServer;
+using Tuple = Microsoft.AnalysisServices.AdomdServer.Tuple; //resolves ambiguous reference in .NET 4 with System.Tuple
 
 namespace ASStoredProcs
 {
