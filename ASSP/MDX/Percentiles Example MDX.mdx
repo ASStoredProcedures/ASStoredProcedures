@@ -1,0 +1,39 @@
+with
+member [Measures].[Percentiles] AS
+ASSP.ValueAtPercentile(NonEmpty([Product].[Product].[Product].Members, [Measures].[Sales Amount]), [Measures].[Sales Amount], .90, true, "INC")
+select {[measures].[percentiles]} on 0
+from [Adventure Works]
+
+GO
+
+with MEMBER [Measures].[RangePoint] AS
+((COUNT(NONEMPTY([Product].[Product].[Product].members
+     ,[Measures].[sales amount])) -1) *.90)
+ 
+MEMBER [Measures].[RangePoint_Int]
+AS
+INT([Measures].[RangePoint])
+ 
+MEMBER [Measures].[Percentiles] AS
+IIF(INT([Measures].[RangePoint]) = [Measures].[RangePoint], 
+(ORDER(NONEMPTY(([Product].[Product].[Product].members
+),[Measures].[Sales Amount]),[Measures].[sales amount], basc).item([Measures].[RangePoint]), 
+[Measures].[Sales Amount])
+,
+(ORDER(NONEMPTY(([Product].[Product].[Product].members
+),[Measures].[Sales Amount]),[Measures].[sales amount], basc).item([Measures].[RangePoint_int]), 
+[Measures].[Sales Amount])
++ 
+([Measures].[RangePoint] - INT([measures].[rangepoint]))
+*
+(
+(ORDER(NONEMPTY(([Product].[Product].[Product].members
+),[Measures].[Sales Amount]),[Measures].[sales amount], basc).item([Measures].[RangePoint_int]+1), 
+[Measures].[Sales Amount])
+-
+(ORDER(NONEMPTY(([Product].[Product].[Product].members
+),[Measures].[Sales Amount]),[Measures].[sales amount], basc).item([Measures].[RangePoint_int]), 
+[Measures].[Sales Amount])) )   
+ 
+select {[measures].[percentiles]} on 0
+from [Adventure Works]

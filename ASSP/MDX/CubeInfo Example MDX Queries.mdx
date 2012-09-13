@@ -2,3 +2,32 @@
 with member [Measures].[LastProcessed] as ASSP.GetCubeLastProcessedDate()
 select [Measures].[LastProcessed] on 0
 from [Adventure Works]
+
+GO
+
+with
+member [Measures].[Cube Last Processed]
+ as ASSP.GetCubeLastProcessedDate()
+member [Measures].[Measure Group Last Processed]
+ as ASSP.GetMeasureGroupLastProcessedDate("Internet Sales")
+member [Measures].[Most Recent Partition Whole Cube With Measure Group]
+ as ASSP.GetLastProcessedDateOverPartitions()
+member [Measures].[Most Recent Partition Whole Cube]
+ as ASSP.GetLastProcessedDateOverPartitions(false)
+member [Measures].[Most Recent Partition In Measure Group]
+ as ASSP.GetLastProcessedDateOverPartitions("Internet Sales", true)
+member [Measures].[Partition Processed Date]
+ as ASSP.GetLastProcessedDateOverPartitions("Internet Sales", "Internet_Sales_2008", true)
+member [Measures].[Partition Processed Date Specific Cube]
+ as ASSP.GetLastProcessedDateOverPartitions("Adventure Works", "Internet Sales", "Internet_Sales_2008", true)
+select {
+ [Measures].[Cube Last Processed]
+,[Measures].[Measure Group Last Processed]
+,[Measures].[Most Recent Partition Whole Cube With Measure Group]
+,[Measures].[Most Recent Partition Whole Cube]
+,[Measures].[Most Recent Partition In Measure Group]
+,[Measures].[Partition Processed Date]
+,[Measures].[Partition Processed Date Specific Cube]
+}
+on 0
+from [Adventure Works]

@@ -80,6 +80,7 @@
     <Compile Include="DMVParser\Tokenizer\Token.cs" />
     <Compile Include="DMVParser\Tokenizer\Tokenizer.cs" />
     <Compile Include="DMVParser\Tokenizer\WhiteSpaceState.cs" />
+    <Compile Include="Percentiles.cs" />
     <Compile Include="TraceEvent.cs" />
     <Compile Include="Utilities\PriorityQueue.cs" />
     <Compile Include="SetOperations.cs" />
@@ -97,6 +98,7 @@
   <ItemGroup>
     <None Include="MDX\AsymmetricSet Example MDX Queries.mdx" />
     <None Include="MDX\ClusterNaming Examples.dmx" />
+    <None Include="MDX\Percentiles Example MDX.mdx" />
     <None Include="MDX\FileSystemCache Example MDX Queries.mdx" />
     <None Include="MDX\CubeInfo Example MDX Queries.mdx" />
     <None Include="MDX\Dimension Health Check Example Queries.mdx" />
