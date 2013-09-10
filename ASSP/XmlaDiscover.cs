@@ -545,6 +545,82 @@ namespace ASStoredProcs
             }
         }
 #endregion
+
+        #region ForEach functions
+        [SafeToPrepare(true)]
+        public DataTable ForEachMeasureGroup(string command)
+        {
+            return ForEachMeasureGroupInternal(command, false);
+        }
+
+        [SafeToPrepare(true)]
+        public DataTable ForEachMeasureGroupInternal(string command, bool forEachPartition)
+        {
+            DataTable result = new DataTable();
+
+            Microsoft.AnalysisServices.Server server = new Microsoft.AnalysisServices.Server();
+            server.Connect("*");
+            Database db = server.Databases.GetByName(Context.CurrentDatabaseName);
+
+            foreach (Microsoft.AnalysisServices.Cube c in db.Cubes)
+            {
+                Microsoft.AnalysisServices.AdomdClient.AdomdConnection conn = TimeoutUtility.ConnectAdomdClient("Data Source=" + server.Name + ";Initial Catalog=" + Context.CurrentDatabaseName + ";Cube=" + c.Name);
+
+                foreach (Microsoft.AnalysisServices.MeasureGroup mg in c.MeasureGroups)
+                {
+                    if (forEachPartition)
+                    {
+                        foreach (Microsoft.AnalysisServices.Partition p in mg.Partitions)
+                        {
+                            //parameters don't appear to work with some DMV queries, so use string substitution
+                            string sNewCommand = command;
+                            sNewCommand = ReplaceParameterWithString(sNewCommand, "DATABASE_NAME", db.Name);
+                            sNewCommand = ReplaceParameterWithString(sNewCommand, "DATABASE_ID", db.ID);
+                            sNewCommand = ReplaceParameterWithString(sNewCommand, "CUBE_NAME", c.Name);
+                            sNewCommand = ReplaceParameterWithString(sNewCommand, "CUBE_ID", c.ID);
+                            sNewCommand = ReplaceParameterWithString(sNewCommand, "MEASUREGROUP_NAME", mg.Name);
+                            sNewCommand = ReplaceParameterWithString(sNewCommand, "MEASUREGROUP_ID", mg.ID);
+                            sNewCommand = ReplaceParameterWithString(sNewCommand, "PARTITION_NAME", p.Name);
+                            sNewCommand = ReplaceParameterWithString(sNewCommand, "PARTITION_ID", p.ID);
+                            Microsoft.AnalysisServices.AdomdClient.AdomdCommand cmd = new Microsoft.AnalysisServices.AdomdClient.AdomdCommand(sNewCommand, conn);
+                            cmd.CommandTimeout = 0;
+                            Microsoft.AnalysisServices.AdomdClient.AdomdDataAdapter adp = new Microsoft.AnalysisServices.AdomdClient.AdomdDataAdapter(cmd);
+                            TimeoutUtility.FillAdomdDataAdapter(adp, result);
+                        }
+                    }
+                    else
+                    {
+                        //parameters don't appear to work with some DMV queries, so use string substitution
+                        string sNewCommand = command;
+                        sNewCommand = ReplaceParameterWithString(sNewCommand, "DATABASE_NAME", db.Name);
+                        sNewCommand = ReplaceParameterWithString(sNewCommand, "DATABASE_ID", db.ID);
+                        sNewCommand = ReplaceParameterWithString(sNewCommand, "CUBE_NAME", c.Name);
+                        sNewCommand = ReplaceParameterWithString(sNewCommand, "CUBE_ID", c.ID);
+                        sNewCommand = ReplaceParameterWithString(sNewCommand, "MEASUREGROUP_NAME", mg.Name);
+                        sNewCommand = ReplaceParameterWithString(sNewCommand, "MEASUREGROUP_ID", mg.ID);
+                        Microsoft.AnalysisServices.AdomdClient.AdomdCommand cmd = new Microsoft.AnalysisServices.AdomdClient.AdomdCommand(sNewCommand, conn);
+                        cmd.CommandTimeout = 0;
+                        Microsoft.AnalysisServices.AdomdClient.AdomdDataAdapter adp = new Microsoft.AnalysisServices.AdomdClient.AdomdDataAdapter(cmd);
+                        TimeoutUtility.FillAdomdDataAdapter(adp, result);
+                    }
+                }
+
+                conn.Close();
+            }
+            return result;
+        }
+
+        private string ReplaceParameterWithString(string command, string parameterName, string value)
+        {
+            return command.Replace("@" + parameterName, "'" + value.Replace("'", "''") + "'");
+        }
+        
+        [SafeToPrepare(true)]
+        public DataTable ForEachPartition(string command)
+        {
+            return ForEachMeasureGroupInternal(command, true);
+        }
+        #endregion
     } // XmlaDiscover class
 
 
