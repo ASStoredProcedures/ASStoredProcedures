@@ -62,6 +62,7 @@
     <Compile Include="AsymmetricSet.cs" />
     <Compile Include="CellTimings.cs" />
     <Compile Include="ClusterNaming.cs" />
+    <Compile Include="CurrentCommand.cs" />
     <Compile Include="CubeInfo.cs" />
     <Compile Include="DimensionHealthCheck.cs" />
     <Compile Include="Drillthrough.cs" />

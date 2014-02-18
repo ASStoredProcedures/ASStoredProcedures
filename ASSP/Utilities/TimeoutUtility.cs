@@ -280,6 +280,66 @@ namespace ASStoredProcs
         }
         #endregion
 
+
+
+        #region GetSchemaDataSet
+        /// <summary>
+        /// Returns a DataSet for the following schema data set (or discover command)
+        /// This is done on a background thread
+        /// Helps ensure a sproc trying to fill a DataSet does not get deadlocked
+        /// </summary>
+        /// <param name="conn"></param>
+        /// <param name="SchemaName"></param>
+        /// <param name="restrictions"></param>
+        public static System.Data.DataSet GetSchemaDataSet(Microsoft.AnalysisServices.AdomdClient.AdomdConnection conn, string SchemaName, Microsoft.AnalysisServices.AdomdClient.AdomdRestrictionCollection restrictions)
+        {
+            GetSchemaDataSetInfo info = new GetSchemaDataSetInfo();
+            info.conn = conn;
+            info.SchemaName = SchemaName;
+            info.restrictions = restrictions;
+            info.autoEvent = new System.Threading.AutoResetEvent(false);
+            System.Threading.ThreadPool.QueueUserWorkItem(new System.Threading.WaitCallback(GetSchemaDataSetWorker), info);
+
+            while (!info.autoEvent.WaitOne(1000, false))
+            {
+                Context.CheckCancelled(); //if the parent query has been cancelled (or the ForceCommitTimeout expires) then this will immediately exit
+            }
+
+            if (info.ex != null)
+            {
+                throw info.ex;
+            }
+            return info.dataSet;
+        }
+
+        private class GetSchemaDataSetInfo
+        {
+            public Microsoft.AnalysisServices.AdomdClient.AdomdConnection conn;
+            public string SchemaName;
+            public Microsoft.AnalysisServices.AdomdClient.AdomdRestrictionCollection restrictions;
+            public System.Data.DataSet dataSet;
+            public System.Threading.AutoResetEvent autoEvent;
+            public Exception ex;
+        }
+
+        private static void GetSchemaDataSetWorker(object o)
+        {
+            GetSchemaDataSetInfo info = null;
+            try
+            {
+                info = (GetSchemaDataSetInfo)o;
+                info.dataSet = info.conn.GetSchemaDataSet(info.SchemaName, info.restrictions);
+            }
+            catch (Exception ex)
+            {
+                info.ex = ex;
+            }
+            finally
+            {
+                info.autoEvent.Set();
+            }
+        }
+        #endregion
     }
 }
 
