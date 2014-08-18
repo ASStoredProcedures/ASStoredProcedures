@@ -217,5 +217,61 @@ namespace ASStoredProcs
             return new Expression("{" + sb.ToString() + "}").CalculateMdxObject(null).ToSet();
         }
 
+        /// <summary>
+        /// this function does conditional masking of values in a drillthrough command
+        /// </summary>
+        /// <param name="drillthroughMdx">The drillthrough MDX command</param>
+        /// <param name="columnList">The semi-colon (;) delimited list of columns to be masked</param>
+        /// <param name="mask">The static value to be returned when a value is masked</param>
+        /// <param name="maskTestColumn">This is the column which is to be tested to determine if masking should be applied. It is expected that in most cases this would contain user logins</param>
+        /// <param name="maskTest">This is the comparison to perform against maskTestColumn and can be either equal "=" or not equal "!=" </param>
+        /// <param name="maskTestValue">This is the value that maskTestColumn is compared against. Most often this would be passed in from the UserName() function</param>
+        /// <returns>A data table with the specified columns masked</returns>
+        public static DataTable ExecuteDrillthroughMaskAndFixColumns(string drillthroughMdx
+            , string columnList
+            , string mask
+            , string maskTestColumn
+            , string maskTest
+            , string maskTestValue)
+        {
+            DataTable dataTable = ExecuteDrillthroughAndFixColumns(drillthroughMdx);
+            string[] columnNames = columnList.Split(';');
+            foreach (DataRow dr in dataTable.Rows)
+            {
+                foreach (var maskedCol in columnNames)
+                {
+                    if (dataTable.Columns.Contains(maskedCol))
+                    {
+                        if (maskTestColumn != "" && dataTable.Columns.Contains(maskTestColumn))
+                        {
+                            //var maskTestValue = dr[maskTestColumn];
+                            switch (maskTest)
+                            {
+                                case "=":
+                                    if (dr[maskTestColumn].ToString() == maskTestValue)
+                                        dr[maskedCol] = mask;
+                                    break;
+                                case "<>":
+                                case "!=":
+                                    if (dr[maskTestColumn].ToString() != maskTestValue)
+                                        dr[maskedCol] = mask;
+                                    break;
+                                default:
+                                    dr[maskedCol] = mask;
+                                    break;
+                            }
+                            
+                        }
+                        else
+                        {
+                            dr[maskedCol] = mask;
+                        }
+                    }
+                }
+            }
+            
+            return dataTable;
+        }
+
     }
 }
