@@ -173,10 +173,23 @@ namespace ASStoredProcs
                     {
                         foreach (Member m in tuple.Members)
                         {
-                            if (m.ParentLevel.ParentHierarchy.ParentDimension.DimensionType == DimensionTypeEnum.Measure)
+                            try
                             {
-                                sOverrideMeasure = m.UniqueName;
-                                break;
+                                if (m.ParentLevel.ParentHierarchy.ParentDimension.DimensionType == DimensionTypeEnum.Measure)
+                                {
+                                    sOverrideMeasure = m.UniqueName;
+                                    break;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                // DPG 16 Jan 2015
+                                // if we get an error trying to figure out if we are looking at the Measures Dimension
+                                // we can just log it and continue. As far as I'm aware this only happens when one of the dimensions/attributes
+                                // in the tuple is not visible and this should only occur for non-measures dimensions.
+                                // so simply logging the exception and moving on to the next member should not do any harm.
+                                int eventSubClass = 999;
+                                Context.TraceEvent(eventSubClass, 0, string.Format("ERROR GetCustomDrillthroughMDX() Exception: {0}", ex.Message));
                             }
                         }
 
