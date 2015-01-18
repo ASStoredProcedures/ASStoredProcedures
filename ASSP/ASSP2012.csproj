@@ -52,7 +52,7 @@
     </Reference>
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="msmgdsrv">
-      <HintPath>..\..\..\..\Program Files\Microsoft Analysis Services\AS OLEDB\110\msmgdsrv.dll</HintPath>
+      <HintPath>C:\Program Files\Microsoft Analysis Services\AS OLEDB\110\msmgdsrv.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
