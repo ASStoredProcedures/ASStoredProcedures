@@ -172,7 +172,7 @@ namespace ASStoredProcs
         }
 
         [SafeToPrepare(true)]
-        public decimal RatioToParent(Set axis, Expression exp)
+        public double RatioToParent(Set axis, Expression exp)
         {
             Hierarchy h = null;
 
@@ -194,7 +194,7 @@ namespace ASStoredProcs
             // Since current member in this hierarchy is not yet at the highest level, we can safely call .Parent
             TupleBuilder tb = new TupleBuilder(h.CurrentMember.Parent);
             // and divide value at current cell by the value of its parent
-            return (decimal)exp.Calculate(null) / (decimal)exp.Calculate(tb.ToTuple());
+            return (double)exp.Calculate(null) / (double)exp.Calculate(tb.ToTuple());
         }
 
         // The usage should be exactly same as the native MDX function TopCount.
