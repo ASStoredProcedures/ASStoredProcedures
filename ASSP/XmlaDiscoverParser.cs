@@ -135,6 +135,7 @@ namespace ASStoredProcs
                             }
                         }
                         addParentIdColumns(dq, dt, n);
+                        EnsureExplicitLeafColumnsExist(dq, dt, n);
                         tableBuilt = true;
                         // If this is a prepare call, we only need to return an empty table
                         //if (prepareOnly)
@@ -213,6 +214,21 @@ namespace ASStoredProcs
                     }
                 }
             }
+        }
+
+        private void EnsureExplicitLeafColumnsExist(DiscoverQuery dq, DataTable dt, XmlNode n)
+        {
+            
+            foreach (var ele in dq.Elements)
+            {
+                if (ele.Next != null) continue;
+                foreach (var fld in ele.Fields)
+                {
+                    if (dt.Columns.Contains(fld)) continue;   
+                    dt.Columns.Add(fld);
+                }
+            }
+
         }
 
         private void addParentIdValues(DiscoverQuery dq, DataTable dt, string[] data, XmlNode fld)
