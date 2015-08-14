@@ -72,16 +72,21 @@ namespace ASStoredProcs
         //FindCurrentMember returns a comma-delimited list of the uniquenames of the currentmember on every attribute hierarchy
         //on every dimension
         [SafeToPrepare(true)]
-        public static string FindCurrentTuple()
+        public static string FindCurrentTuple(string excludedObjects)
         {
             string output = "(";
             Boolean addcomma = false;
+            var exclusionList = new List<string>(excludedObjects.Split(','));
+            
 
             foreach (Dimension d in Context.CurrentCube.Dimensions)
             {
                 foreach (Hierarchy h in d.AttributeHierarchies)
                 {
-                    if (d.DimensionType == DimensionTypeEnum.Measure || h.CurrentMember.UniqueName != h.DefaultMember)
+                    if ((d.DimensionType == DimensionTypeEnum.Measure 
+                        || h.CurrentMember.UniqueName != h.DefaultMember) 
+                        && (!exclusionList.Contains(d.UniqueName) && !exclusionList.Contains(h.UniqueName))
+                        )
                     {
                         if (addcomma == false)
                             addcomma = true;
@@ -95,6 +100,12 @@ namespace ASStoredProcs
             output += ")";
 
             return output;
+        }
+
+        [SafeToPrepare(true)]
+        public static string FindCurrentTuple()
+        {
+            return FindCurrentTuple("");
         }
     }
 }
