@@ -21,7 +21,8 @@ using System.Text;
 using Microsoft.AnalysisServices.AdomdServer;
 using AdomdClient = Microsoft.AnalysisServices.AdomdClient;
 using System.Data;
-using Tuple = Microsoft.AnalysisServices.AdomdServer.Tuple; //resolves ambiguous reference in .NET 4 with System.Tuple
+using Tuple = Microsoft.AnalysisServices.AdomdServer.Tuple;
+using System.Text.RegularExpressions; //resolves ambiguous reference in .NET 4 with System.Tuple
 
 
 namespace ASStoredProcs
@@ -78,7 +79,7 @@ namespace ASStoredProcs
 
         public static DataTable ExecuteDrillthroughAndFixColumns(string sDrillthroughMDX)
         {
-            AdomdClient.AdomdConnection conn = TimeoutUtility.ConnectAdomdClient("Data Source=" + Context.CurrentServerID + ";Initial Catalog=" + Context.CurrentDatabaseName + ";Application Name=ASSP");
+            AdomdClient.AdomdConnection conn = TimeoutUtility.ConnectAdomdClient("Data Source=" + Context.CurrentServerID + ";Initial Catalog=" + Context.CurrentDatabaseName + ";Application Name=ASSP;" );
             try
             {
                 AdomdClient.AdomdCommand cmd = new AdomdClient.AdomdCommand();
@@ -107,6 +108,123 @@ namespace ASStoredProcs
                     if (!tbl.Columns.Contains(sNewColumnName))
                         col.ColumnName = sNewColumnName;
                 }
+
+                return tbl;
+            }
+            finally
+            {
+                conn.Close();
+            }
+        }
+
+        public static DataTable ExecuteDrillthroughAndTranslateColumns(string sDrillthroughMDX)
+        {
+            Regex columnNameRegex = new Regex( @"\[(?<cube>[^]]*)]\.\[(?<level>[^]]*)]", RegexOptions.Compiled) ;
+            AdomdClient.AdomdConnection conn = TimeoutUtility.ConnectAdomdClient("Data Source=" + Context.CurrentServerID + ";Initial Catalog=" + Context.CurrentDatabaseName + ";Application Name=ASSP;Locale Identifier=" + Context.CurrentConnection.ClientCulture.LCID);
+            try
+            {
+                Dictionary<string, string> translations = new Dictionary<string, string>();
+                // get level names
+                var resColl = new AdomdClient.AdomdRestrictionCollection();
+                resColl.Add("CUBE_SOURCE", "3"); // dimensions
+                resColl.Add("LEVEL_VISIBILITY", "3"); // visible and non-visible
+                resColl.Add("CUBE_NAME", Context.CurrentCube); // visible and non-visible
+                var dsLevels = conn.GetSchemaDataSet("MDSCHEMA_LEVELS", resColl);
+                foreach (DataRow dr in dsLevels.Tables[0].Rows)
+                {
+                    var sColName = string.Format("[${0}.[{1}]", dr["DIMENSION_UNIQUE_NAME"].ToString().Substring(1), dr["LEVEL_NAME"].ToString());
+                    if (!translations.ContainsKey(sColName))
+                    {
+                        translations.Add(sColName, dr["LEVEL_CAPTION"].ToString());
+                    }
+                }
+
+                // get measure names
+                resColl.Clear();
+                resColl.Add("CUBE_NAME", Context.CurrentCube);
+                resColl.Add("MEASURE_VISIBILITY", 3); // visible and non-visible
+                var dsMeasures = conn.GetSchemaDataSet("MDSCHEMA_MEASURES", resColl);
+                foreach (DataRow dr in dsMeasures.Tables[0].Rows)
+                {
+                    if (!translations.ContainsKey(string.Format("[{0}].[{1}]", dr["MEASUREGROUP_NAME"].ToString(), dr["MEASURE_NAME"].ToString())))
+                    {
+                        translations.Add(string.Format("[{0}].[{1}]", dr["MEASUREGROUP_NAME"].ToString(), dr["MEASURE_NAME"].ToString()), dr["MEASURE_CAPTION"].ToString());
+                    }
+                }
+
+                // get dimension names
+                resColl.Clear();
+                resColl.Add("CUBE_NAME",Context.CurrentCube);
+                var dsDims = conn.GetSchemaDataSet("MDSCHEMA_DIMENSIONS", resColl);
+
+
+                AdomdClient.AdomdCommand cmd = new AdomdClient.AdomdCommand();
+                cmd.Connection = conn;
+                cmd.CommandText = sDrillthroughMDX;
+                DataTable tbl = new DataTable();
+                AdomdClient.AdomdDataAdapter adp = new AdomdClient.AdomdDataAdapter(cmd);
+                TimeoutUtility.FillAdomdDataAdapter(adp, tbl);
+
+                // loop through the columns looking for duplicate translation names
+                Dictionary<string, int> dictColumnNames = new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
+                foreach (DataColumn col in tbl.Columns)
+                {
+                    var colKey = col.ColumnName.Substring(0, col.ColumnName.LastIndexOf(']')+1);
+
+                    if (translations.ContainsKey(colKey))
+                    {
+                        string sNewColumnName = translations[colKey];
+                        if (dictColumnNames.ContainsKey(sNewColumnName))
+                            dictColumnNames[sNewColumnName]++;
+                        else
+                            dictColumnNames.Add(sNewColumnName, 1);
+                    }
+                    else
+                    {
+                        Context.TraceEvent(999,0, string.Format("The translation for the column '{0}' was not found", col.ColumnName));
+                    }
+                }
+
+
+                foreach (DataColumn col in tbl.Columns)
+                {
+                    var colKey = col.ColumnName.Substring(0, col.ColumnName.LastIndexOf(']')+1);
+                    var suffix = col.ColumnName.Substring(col.ColumnName.LastIndexOf("]") + 1);
+                    if (translations.ContainsKey(colKey))
+                    {
+                        string sNewName = translations[colKey];
+                        if (dictColumnNames[sNewName] > 1)
+                        {
+                            
+                            //if (string.IsNullOrWhiteSpace( suffix)){
+                                //prefix with tablename
+                                var m = columnNameRegex.Matches(col.ColumnName);
+                                var dimName = m[0].Groups["cube"].Value.TrimStart('$');
+                                var caption = dsDims.Tables[0].Select(string.Format("DIMENSION_NAME = '{0}'",dimName))[0]["DIMENSION_CAPTION"].ToString();
+                                col.ColumnName = caption + "." + sNewName + suffix;
+                            //}
+                            //else {
+                            //    col.ColumnName = sNewName + suffix;
+                            //}
+                        }
+                        else
+                        {
+                            col.ColumnName = sNewName;
+                        }
+                    }
+                }
+                
+
+               
+
+                //foreach (DataColumn col in tbl.Columns)
+                //{
+                //    string sNewColumnName = col.ColumnName.Substring(col.ColumnName.LastIndexOf('.') + 1).Replace("[", "").Replace("]", "");
+                //    if (dictColumnNames[sNewColumnName] > 1)
+                //        sNewColumnName = col.ColumnName.Substring(col.ColumnName.LastIndexOf('[') + 1).Replace("[", "").Replace("]", "").Replace("$", "");
+                //    if (!tbl.Columns.Contains(sNewColumnName))
+                //        col.ColumnName = sNewColumnName;
+                //}
 
                 return tbl;
             }
