@@ -38,14 +38,24 @@ namespace ASStoredProcs
             return GetDrillthroughMDXInternal(null, null, null);
         }
 
+        public static string GetDefaultDrillthroughMDX(bool skipDefaultMembers)
+        {
+            return GetDrillthroughMDXInternal(null, null, null,skipDefaultMembers);
+        }
+
         public static string GetDefaultDrillthroughMDX(Tuple tuple)
         {
             return GetDrillthroughMDXInternal(tuple, null, null);
         }
 
-        public static string GetDefaultDrillthroughMDX(Tuple tuple, int iMaxRows)
+        public static string GetDefaultDrillthroughMDX(Tuple tuple, bool skipDefaultMembers)
         {
-            return GetDrillthroughMDXInternal(tuple, null, iMaxRows);
+            return GetDrillthroughMDXInternal(tuple, null, null,skipDefaultMembers);
+        }
+
+        public static string GetDefaultDrillthroughMDX(Tuple tuple, int iMaxRows, bool skipDefaultMembers)
+        {
+            return GetDrillthroughMDXInternal(tuple, null, iMaxRows, skipDefaultMembers);
         }
 
         public static string GetCustomDrillthroughMDX(string sReturnColumns)
@@ -53,7 +63,17 @@ namespace ASStoredProcs
             return GetDrillthroughMDXInternal(null, sReturnColumns, null);
         }
 
+        public static string GetCustomDrillthroughMDX(string sReturnColumns,bool skipDefaultMembers)
+        {
+            return GetDrillthroughMDXInternal(null, sReturnColumns, null,skipDefaultMembers);
+        }
+
         public static string GetCustomDrillthroughMDX(string sReturnColumns, Tuple tuple)
+        {
+            return GetDrillthroughMDXInternal(tuple, sReturnColumns, null);
+        }
+
+        public static string GetCustomDrillthroughMDX(string sReturnColumns, Tuple tuple, bool skipDefaultMembers)
         {
             return GetDrillthroughMDXInternal(tuple, sReturnColumns, null);
         }
@@ -63,17 +83,27 @@ namespace ASStoredProcs
             return GetDrillthroughMDXInternal(tuple, sReturnColumns, iMaxRows);
         }
 
+        public static string GetCustomDrillthroughMDX(string sReturnColumns, Tuple tuple, int iMaxRows, bool skipDefaultMembers)
+        {
+            return GetDrillthroughMDXInternal(tuple, sReturnColumns, iMaxRows, skipDefaultMembers);
+        }
+
         private static string GetDrillthroughMDXInternal(Tuple tuple, string sReturnColumns, int? iMaxRows)
+        {
+            return GetDrillthroughMDXInternal(tuple, sReturnColumns, iMaxRows, false);
+        }
+
+        private static string GetDrillthroughMDXInternal(Tuple tuple, string sReturnColumns, int? iMaxRows, bool skipDefaultMembers)
         {
             if (sReturnColumns != null)
             {
                 //passed in a set of return columns
-                return "drillthrough " + (iMaxRows == null ? "" : "maxrows " + iMaxRows) + " select (" + CurrentCellAttributes(tuple) + ") on 0 from [" + AMOHelpers.GetCurrentCubeName() + "] return " + sReturnColumns;
+                return "drillthrough " + (iMaxRows == null ? "" : "maxrows " + iMaxRows) + " select (" + CurrentCellAttributes(tuple, skipDefaultMembers) + ") on 0 from [" + AMOHelpers.GetCurrentCubeName() + "] return " + sReturnColumns;
             }
             else
             {
                 //passed in a reference to a measure, so just do the default drillthrough for it
-                return "drillthrough " + (iMaxRows == null ? "" : "maxrows " + iMaxRows) + " select (" + CurrentCellAttributes(tuple) + ") on 0 from [" + AMOHelpers.GetCurrentCubeName() + "]";
+                return "drillthrough " + (iMaxRows == null ? "" : "maxrows " + iMaxRows) + " select (" + CurrentCellAttributes(tuple, skipDefaultMembers) + ") on 0 from [" + AMOHelpers.GetCurrentCubeName() + "]";
             }
         }
 
@@ -120,7 +150,9 @@ namespace ASStoredProcs
         public static DataTable ExecuteDrillthroughAndTranslateColumns(string sDrillthroughMDX)
         {
             Regex columnNameRegex = new Regex( @"\[(?<cube>[^]]*)]\.\[(?<level>[^]]*)]", RegexOptions.Compiled) ;
-            AdomdClient.AdomdConnection conn = TimeoutUtility.ConnectAdomdClient("Data Source=" + Context.CurrentServerID + ";Initial Catalog=" + Context.CurrentDatabaseName + ";Application Name=ASSP;Locale Identifier=" + Context.CurrentConnection.ClientCulture.LCID);
+            string connStr = "Data Source=" + Context.CurrentServerID + ";Initial Catalog=" + Context.CurrentDatabaseName + ";Application Name=ASSP;Locale Identifier=" + Context.CurrentConnection.ClientCulture.LCID;
+            AdomdClient.AdomdConnection conn = TimeoutUtility.ConnectAdomdClient(connStr);
+            Context.TraceEvent(999, 0, string.Format("ExecuteDrillthroughAndTranslateColumns ConnectionString: {0}", connStr));
             try
             {
                 Dictionary<string, string> translations = new Dictionary<string, string>();
@@ -154,7 +186,7 @@ namespace ASStoredProcs
 
                 // get dimension names
                 resColl.Clear();
-                resColl.Add("CUBE_NAME",Context.CurrentCube);
+                resColl.Add("CUBE_NAME", Context.CurrentCube);
                 var dsDims = conn.GetSchemaDataSet("MDSCHEMA_DIMENSIONS", resColl);
 
 
@@ -169,7 +201,7 @@ namespace ASStoredProcs
                 Dictionary<string, int> dictColumnNames = new Dictionary<string, int>(StringComparer.InvariantCultureIgnoreCase);
                 foreach (DataColumn col in tbl.Columns)
                 {
-                    var colKey = col.ColumnName.Substring(0, col.ColumnName.LastIndexOf(']')+1);
+                    var colKey = col.ColumnName.Substring(0, col.ColumnName.LastIndexOf(']') + 1);
 
                     if (translations.ContainsKey(colKey))
                     {
@@ -181,41 +213,40 @@ namespace ASStoredProcs
                     }
                     else
                     {
-                        Context.TraceEvent(999,0, string.Format("The translation for the column '{0}' was not found", col.ColumnName));
+                        Context.TraceEvent(999, 0, string.Format("The translation for the column '{0}' was not found", col.ColumnName));
                     }
                 }
 
 
                 foreach (DataColumn col in tbl.Columns)
                 {
-                    var colKey = col.ColumnName.Substring(0, col.ColumnName.LastIndexOf(']')+1);
+                    var colKey = col.ColumnName.Substring(0, col.ColumnName.LastIndexOf(']') + 1);
                     var suffix = col.ColumnName.Substring(col.ColumnName.LastIndexOf("]") + 1);
                     if (translations.ContainsKey(colKey))
                     {
                         string sNewName = translations[colKey];
                         if (dictColumnNames[sNewName] > 1)
                         {
-                            
+
                             //if (string.IsNullOrWhiteSpace( suffix)){
-                                //prefix with tablename
-                                var m = columnNameRegex.Matches(col.ColumnName);
-                                var dimName = m[0].Groups["cube"].Value.TrimStart('$');
-                                var caption = dsDims.Tables[0].Select(string.Format("DIMENSION_NAME = '{0}'",dimName))[0]["DIMENSION_CAPTION"].ToString();
-                                col.ColumnName = caption + "." + sNewName + suffix;
+                            //prefix with tablename
+                            var m = columnNameRegex.Matches(col.ColumnName);
+                            var dimName = m[0].Groups["cube"].Value.TrimStart('$');
+                            var dimCaption = dsDims.Tables[0].Select(string.Format("DIMENSION_NAME = '{0}'", dimName))[0]["DIMENSION_CAPTION"].ToString();
+                            sNewName = dimCaption + "." + sNewName + suffix;
                             //}
                             //else {
                             //    col.ColumnName = sNewName + suffix;
                             //}
                         }
-                        else
-                        {
-                            col.ColumnName = sNewName;
-                        }
+                        Context.TraceEvent(999, 0, string.Format("translating: '{0}' to '{1}'", col.ColumnName, sNewName));
+                        col.ColumnName = sNewName;
+                        
                     }
                 }
-                
 
-               
+
+
 
                 //foreach (DataColumn col in tbl.Columns)
                 //{
@@ -227,6 +258,11 @@ namespace ASStoredProcs
                 //}
 
                 return tbl;
+            }
+            catch (Exception ex)
+            {
+                Context.TraceEvent(999, 0, string.Format("Unhandled Exception: {0}", ex.Message));
+                return null;
             }
             finally
             {
@@ -270,6 +306,11 @@ namespace ASStoredProcs
         }
 
         public static string CurrentCellAttributes(Tuple tuple)
+        {
+            return CurrentCellAttributes(tuple, false);
+        }
+
+        public static string CurrentCellAttributes(Tuple tuple, bool skipDefaultMembers)
         {
             if (tuple == null) return CurrentCellAttributes();
 
@@ -315,6 +356,12 @@ namespace ASStoredProcs
                             continue;
                     }
 
+                    var sCurrMbr = new Expression(h.UniqueName + ".CurrentMember.UniqueName").Calculate(tuple).ToString();
+
+                    // If skipDefaultMembers is true and the current member is the default member
+                    // the move on to the next hierarchy
+                    if (sCurrMbr == null || (sCurrMbr == h.DefaultMember && skipDefaultMembers)) continue;
+
                     if (!first)
                         coordinate.Append("\r\n,");
                     else
@@ -323,7 +370,7 @@ namespace ASStoredProcs
                     if (sOverrideMeasure != null)
                         coordinate.Append(sOverrideMeasure);
                     else //calculate it in the context of the tuple
-                        coordinate.Append(new Expression(h.UniqueName + ".CurrentMember.UniqueName").Calculate(tuple).ToString());
+                        coordinate.Append(sCurrMbr);
                 }
             }
 
