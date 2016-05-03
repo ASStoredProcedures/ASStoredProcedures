@@ -25,13 +25,18 @@ WHERE([Product].[Category].&[1]);
 -- class except it generates a tuple in the form of a string and it ignores a 
 -- hierarchy when the currentmember is the same as the default member, making the 
 -- output much more readable. 
+-- 
+-- includes an optional parameter which is a comma separated list of dimensions or hierarchies
+-- exclude from the tuple which is returned 
+--
 -- LIMITATIONS: it doesn’t work with sets in the WHERE clause, although it could be
 --              modified to do so; it won’t work with subselects or calculated 
 --              members defined outside the MDX Script
 WITH 
-  CELL CALCULATION [test] FOR '(Measures.AllMembers)' AS  ASSP.FindCurrentTuple() 
+  CELL CALCULATION [test] FOR '(Measures.[Internet Sales Amount])' AS  ASSP.FindCurrentTuple() 
+  CELL CALCULATION [test2] FOR '(Measures.[Reseller Sales Amount])' AS  ASSP.FindCurrentTuple("[Measures],[Date].[Calendar Weeks]") 
 SELECT 
-  [Measures].[Internet Sales Amount] ON COLUMNS ,
+  {[Measures].[Internet Sales Amount], [Measures].[Reseller Sales Amount]} ON COLUMNS ,
   [Date].[Calendar Year].[Calendar Year].MEMBERS ON ROWS
 FROM
   [Adventure Works]
