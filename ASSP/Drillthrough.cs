@@ -90,7 +90,7 @@ namespace ASStoredProcs
 
         private static string GetDrillthroughMDXInternal(Tuple tuple, string sReturnColumns, int? iMaxRows)
         {
-            return GetDrillthroughMDXInternal(tuple, sReturnColumns, iMaxRows, false);
+            return GetDrillthroughMDXInternal(tuple, sReturnColumns, iMaxRows, true);
         }
 
         private static string GetDrillthroughMDXInternal(Tuple tuple, string sReturnColumns, int? iMaxRows, bool skipDefaultMembers)
