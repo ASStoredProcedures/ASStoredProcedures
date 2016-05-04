@@ -312,7 +312,7 @@ namespace ASStoredProcs
 
         public static string CurrentCellAttributes(Tuple tuple, bool skipDefaultMembers)
         {
-            if (tuple == null) return CurrentCellAttributes();
+            if (tuple == null) return FindCurrentMembers.FindCurrentTuple();// CurrentCellAttributes();
 
             // start with empty string
             StringBuilder coordinate = new StringBuilder();
