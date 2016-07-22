@@ -83,6 +83,10 @@
       <SpecificVersion>True</SpecificVersion>
       <HintPath>dlls\2016\Microsoft.AnalysisServices.AdomdClient.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.AnalysisServices.Core, Version=13.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>dlls\2016\Microsoft.AnalysisServices.Core.DLL</HintPath>
+    </Reference>
     <Reference Include="Microsoft.AnalysisServices.XMLA, Version=13.0.0.0, Culture=neutral, PublicKeyToken=89845dcd8080cc91, processorArchitecture=MSIL">
       <SpecificVersion>True</SpecificVersion>
       <HintPath>dlls\2016\Microsoft.AnalysisServices.XMLA.dll</HintPath>
