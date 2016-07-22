@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <UsingTask TaskName="Zip" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll">
+  <ParameterGroup>
+    <OutputFilename ParameterType="System.String" Required="true" />
+    <Files ParameterType="Microsoft.Build.Framework.ITaskItem[]" Required="true" />
+  </ParameterGroup>
+  <Task>
+    <Reference Include="System.IO.Compression" />
+    <Using Namespace="System.IO.Compression" />
+    <Code Type="Fragment" Language="cs">
+    <![CDATA[
+      try
+      {
+        using (Stream zipStream = new FileStream(Path.GetFullPath(OutputFilename), FileMode.Create, FileAccess.Write))
+        using (ZipArchive archive = new ZipArchive(zipStream, ZipArchiveMode.Create))
+        {
+            foreach (ITaskItem fileItem in Files)
+            {
+                string filename = fileItem.ItemSpec;
+                using (Stream fileStream = new FileStream(filename, FileMode.Open, FileAccess.Read))
+                using (Stream fileStreamInZip = archive.CreateEntry(new FileInfo(filename).Name).Open())
+                    fileStream.CopyTo(fileStreamInZip);
+            }
+        }
+        return true;
+      }
+      catch (Exception ex)
+      {
+        Log.LogErrorFromException(ex);
+        return false;
+      }
+    ]]>
+    </Code>
+  </Task>
+</UsingTask>
+  
+  <Target Name="Clean">
+    <Message Text="Cleaning ASSP $(edition)"  Importance="high" />
+    <MSBuild Projects="..\..\assp\assp$(edition).sln" Targets="Clean" />
+  </Target>
+  
+  <Target Name="Build" DependsOnTargets="Clean">
+    <Message Text="Building ASSP $(edition)" Importance="high" />
+    <!--<MSBuild Projects=".\src\daxstudio.standalone\daxstudio.standalone.csproj" Targets="Build" />-->
+	<MSBuild Projects="..\..\assp\assp$(edition).sln" Targets="Build" >
+		<Output ItemName="YourProjectOutputs" TaskParameter="TargetOutputs"/>
+	</MSBuild>
+  </Target>
+  
+  
+    <ItemGroup>
+        <MySourceFiles Include="assp.dll"/>
+    </ItemGroup>
+
+    <Target Name="CopyFiles" DependsOnTargets="CreateDirectories">
+        <Copy
+            SourceFiles="@(YourProjectOutputs)"
+            DestinationFolder="..\..\Releases\$(edition)"
+        />
+		<!--<Message Text="OutputPath = $(OutputPath)" />-->
+
+    </Target>
+ 
+ <Target Name="getVersion" DependsOnTargets="Build">
+    <GetAssemblyIdentity AssemblyFiles="..\..\assp\bin\release\assp.dll">
+        <Output TaskParameter="Assemblies" ItemName="myAssemblyInfo"/>
+    </GetAssemblyIdentity>
+    
+    <Message Text="Version = $([System.Version]::Parse(%(myAssemblyInfo.Version)).ToString(3).Replace(&quot;.&quot;,&quot;_&quot;))" Importance="high" />
+	
+  <PropertyGroup>
+    <FileVersion>$([System.Version]::Parse(%(myAssemblyInfo.Version)).ToString(3).Replace(&quot;.&quot;,&quot;_&quot;))</FileVersion>
+</PropertyGroup>
+</Target>
+  
+  <Target Name="CreateDirectories" DependsOnTargets="getVersion">
+        <MakeDir Directories="../../releases/$(FileVersion)"/>
+  </Target>
+  
+  <Target Name="XmlaScript" DependsOnTargets="CreateDirectories">
+	  <PropertyGroup>
+		<PowerShellExe Condition=" '$(PowerShellExe)'=='' ">%WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe</PowerShellExe>
+		<ScriptLocation Condition=" '$(ScriptLocation)'=='' ">./SSAS generate create assembly.ps1</ScriptLocation>
+		<dllFile Condition=" '$(dllFile)'=='' ">../../assp/bin/release/assp.dll</dllFile>
+		<xmlaFile Condition=" '$(xmlaFile)'=='' ">../../releases/$(FileVersion)/assp_$(edition)_v$(fileVersion).xmla</xmlaFile>
+	  </PropertyGroup>
+	  <!--
+	  <Exec Command="cmd -k $(PowerShellExe) -executionpolicy RemoteSigned 
+					 -File &quot;$(ScriptLocation)&quot; 
+							  -dllFile &quot;$(dllFile)&quot;
+							  -xmlaFile &quot;$(xmlaFile)&quot;" />
+						
+	<Exec Command="powershell -Command &quot;write-host &apos;Hello World&apos;&quot;" />
+							  -->
+
+	   <Exec Command="powershell -NoProfile -NoLogo -executionpolicy RemoteSigned -File &quot;$(ScriptLocation)&quot; -dllFile &quot;$(dllFile)&quot; -xmlaFile &quot;$(xmlaFile)&quot;" />
+  </Target>
+  
+  
+  
+  <Target Name="ZipFile" Condition="$(Configuration) == 'Release'" DependsOnTargets="XmlaScript">
+  <!--<Copy SourceFiles="$(SolutionDir)\License.txt" DestinationFiles="$(OutputPath)Project.License.txt" />-->
+  <ItemGroup>
+    <ZipFiles Include="..\..\assp\bin\release\assp.dll" />
+  </ItemGroup>
+  <Zip OutputFilename="..\..\releases\$(FileVersion)\assp_$(Edition)_v$(FileVersion).zip" Files="@(ZipFiles)" />
+</Target>
+  
+</Project>
