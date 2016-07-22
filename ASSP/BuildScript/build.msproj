@@ -38,20 +38,20 @@
   
   <Target Name="Clean">
     <Message Text="Cleaning ASSP $(edition)"  Importance="high" />
-    <MSBuild Projects="..\..\assp\assp$(edition).sln" Targets="Clean" />
+    <MSBuild Projects="..\..\assp\ASSP$(edition).sln" Targets="Clean" />
   </Target>
   
   <Target Name="Build" DependsOnTargets="Clean">
     <Message Text="Building ASSP $(edition)" Importance="high" />
     <!--<MSBuild Projects=".\src\daxstudio.standalone\daxstudio.standalone.csproj" Targets="Build" />-->
-	<MSBuild Projects="..\..\assp\assp$(edition).sln" Targets="Build" >
+	<MSBuild Projects="..\..\assp\ASSP$(edition).sln" Targets="Build" >
 		<Output ItemName="YourProjectOutputs" TaskParameter="TargetOutputs"/>
 	</MSBuild>
   </Target>
   
   
     <ItemGroup>
-        <MySourceFiles Include="assp.dll"/>
+        <MySourceFiles Include="ASSP.dll"/>
     </ItemGroup>
 
     <Target Name="CopyFiles" DependsOnTargets="CreateDirectories">
@@ -64,7 +64,7 @@
     </Target>
  
  <Target Name="getVersion" DependsOnTargets="Build">
-    <GetAssemblyIdentity AssemblyFiles="..\..\assp\bin\release\assp.dll">
+    <GetAssemblyIdentity AssemblyFiles="..\..\assp\bin\release\ASSP.dll">
         <Output TaskParameter="Assemblies" ItemName="myAssemblyInfo"/>
     </GetAssemblyIdentity>
     
@@ -83,8 +83,8 @@
 	  <PropertyGroup>
 		<PowerShellExe Condition=" '$(PowerShellExe)'=='' ">%WINDIR%\System32\WindowsPowerShell\v1.0\powershell.exe</PowerShellExe>
 		<ScriptLocation Condition=" '$(ScriptLocation)'=='' ">./SSAS generate create assembly.ps1</ScriptLocation>
-		<dllFile Condition=" '$(dllFile)'=='' ">../../assp/bin/release/assp.dll</dllFile>
-		<xmlaFile Condition=" '$(xmlaFile)'=='' ">../../releases/$(FileVersion)/assp_$(edition)_v$(fileVersion).xmla</xmlaFile>
+		<dllFile Condition=" '$(dllFile)'=='' ">../../assp/bin/release/ASSP.dll</dllFile>
+		<xmlaFile Condition=" '$(xmlaFile)'=='' ">../../releases/$(FileVersion)/ASSP_$(edition)_v$(fileVersion).xmla</xmlaFile>
 	  </PropertyGroup>
 	  <!--
 	  <Exec Command="cmd -k $(PowerShellExe) -executionpolicy RemoteSigned 
@@ -103,9 +103,9 @@
   <Target Name="ZipFile" Condition="$(Configuration) == 'Release'" DependsOnTargets="XmlaScript">
   <!--<Copy SourceFiles="$(SolutionDir)\License.txt" DestinationFiles="$(OutputPath)Project.License.txt" />-->
   <ItemGroup>
-    <ZipFiles Include="..\..\assp\bin\release\assp.dll" />
+    <ZipFiles Include="..\..\assp\bin\release\ASSP.dll" />
   </ItemGroup>
-  <Zip OutputFilename="..\..\releases\$(FileVersion)\assp_$(Edition)_v$(FileVersion).zip" Files="@(ZipFiles)" />
+  <Zip OutputFilename="..\..\releases\$(FileVersion)\ASSP_$(Edition)_v$(FileVersion).zip" Files="@(ZipFiles)" />
 </Target>
   
 </Project>
