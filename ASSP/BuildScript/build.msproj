@@ -94,7 +94,7 @@
 						
 	<Exec Command="powershell -Command &quot;write-host &apos;Hello World&apos;&quot;" />
 							  -->
-
+    <Message Text="Creating XMLA from $(dllFile)" Importance="high"/>
     <Exec Command="powershell -NoProfile -NoLogo -executionpolicy RemoteSigned -File &quot;$(ScriptLocation)&quot; -dllFile &quot;$(dllFile)&quot; -xmlaFile &quot;$(xmlaFile)&quot;" />
   </Target>
 
@@ -105,6 +105,7 @@
     <ItemGroup>
       <ZipFiles Include="@(YourProjectOutputs)" />
     </ItemGroup>
+    <Message Text="Creating Zip file ASSP_$(Edition)_v$(FileVersion)" Importance="high"/>
     <Zip OutputFilename="..\..\releases\$(FileVersion)\ASSP_$(Edition)_v$(FileVersion).zip" Files="@(ZipFiles)" />
   </Target>
 
