@@ -33,47 +33,42 @@ namespace ASStoredProcs
 
         //in the following functions, if maxrows is not specified, it uses the DefaultDrillthroughMaxRows server setting
 
+        #region GetDefaultDrillthroughMDX overloads
         public static string GetDefaultDrillthroughMDX()
         {
             return GetDrillthroughMDXInternal(null, null, null);
         }
 
-        public static string GetDefaultDrillthroughMDX(bool skipDefaultMembers)
-        {
-            return GetDrillthroughMDXInternal(null, null, null,skipDefaultMembers);
-        }
+        // Implied casting seems to cause an issue here where passing in a tuple 
+        // reference gets cast to a scalar value which then treats 0 as false and non-zero as true
+        //public static string GetDefaultDrillthroughMDX(bool skipDefaultMembers)
+        //{
+        //    return GetDrillthroughMDXInternal(null, null, null,skipDefaultMembers);
+        //}
 
         public static string GetDefaultDrillthroughMDX(Tuple tuple)
         {
             return GetDrillthroughMDXInternal(tuple, null, null);
         }
 
-        public static string GetDefaultDrillthroughMDX(Tuple tuple, bool skipDefaultMembers)
+        public static string GetDefaultDrillthroughMDX(Tuple tuple, int iMaxRows)
         {
-            return GetDrillthroughMDXInternal(tuple, null, null,skipDefaultMembers);
+            return GetDrillthroughMDXInternal(tuple, null, iMaxRows);
         }
 
         public static string GetDefaultDrillthroughMDX(Tuple tuple, int iMaxRows, bool skipDefaultMembers)
         {
             return GetDrillthroughMDXInternal(tuple, null, iMaxRows, skipDefaultMembers);
         }
+        #endregion
 
+        #region GetCustomDrillthroughMDX overloads
         public static string GetCustomDrillthroughMDX(string sReturnColumns)
         {
             return GetDrillthroughMDXInternal(null, sReturnColumns, null);
         }
 
-        public static string GetCustomDrillthroughMDX(string sReturnColumns,bool skipDefaultMembers)
-        {
-            return GetDrillthroughMDXInternal(null, sReturnColumns, null,skipDefaultMembers);
-        }
-
         public static string GetCustomDrillthroughMDX(string sReturnColumns, Tuple tuple)
-        {
-            return GetDrillthroughMDXInternal(tuple, sReturnColumns, null);
-        }
-
-        public static string GetCustomDrillthroughMDX(string sReturnColumns, Tuple tuple, bool skipDefaultMembers)
         {
             return GetDrillthroughMDXInternal(tuple, sReturnColumns, null);
         }
@@ -92,6 +87,7 @@ namespace ASStoredProcs
         {
             return GetDrillthroughMDXInternal(tuple, sReturnColumns, iMaxRows, true);
         }
+        #endregion
 
         private static string GetDrillthroughMDXInternal(Tuple tuple, string sReturnColumns, int? iMaxRows, bool skipDefaultMembers)
         {
