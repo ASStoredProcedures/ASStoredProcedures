@@ -10,4 +10,4 @@ layout: page
     {% endif %}
 {% endfor %}
 
-> Prior versions can be found on the old codeplex site at [http://asstoredprocedures.codeplex.com](http://asstoredprocedures.codeplex.com)
+> The full list of releases can be found at the  [github releases page](https://github.com/ASStoredProcedures/ASStoredProcedures/releases)
