@@ -5,7 +5,7 @@ layout: page
 
 > The full list of releases can be found at the  [github releases page](https://github.com/ASStoredProcedures/ASStoredProcedures/releases).
 > 
-> Please follow the [installation instructions](Installation-Instructions)
+> Please follow the [installation instructions](/Installation-Instructions)
 
 {% for release in  site.github.releases %} 
 {% if release.draft != true and release.prerelease != true %}
