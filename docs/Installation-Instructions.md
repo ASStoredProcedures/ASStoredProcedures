@@ -3,7 +3,13 @@ title: Installation Instructions
 ---
 ## Installation Instructions
 
-Download the proper .zip file from the [latest release](http://asstoredprocedures.codeplex.com/releases) of ASSP and unzip the DLL.
+### Option 1: XMLA Script (Recommended)
+
+Download the proper .xmla file from the [latest release](https://github.com/ASStoredProcedures/ASStoredProcedures/releases) (for example ASSP_2017_v1_4_3.xmla is for SQL Server 2017 and is ASSP release 1.4.3), open in SQL Server Management Studio and execute the script against your Analysis Services Multidimensional server. If you need to adjust the properties of the assembly then open the Assemblies folder and edit the properties of the ASSP assembly.
+
+### Option 2: Deploying DLL
+
+Download the proper .zip file from the [latest release](https://github.com/ASStoredProcedures/ASStoredProcedures/releases) of ASSP and unzip the DLL.
 
 Start by opening SQL Server Management Studio (SSMS) 
 * If you want the Assembly available to all databases, right clicking on the Assemblies node under the Server.
