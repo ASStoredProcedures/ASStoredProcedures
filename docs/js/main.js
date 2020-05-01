@@ -61,7 +61,7 @@ var main = {
 
       fakeMenu.remove();
     }        
-    main.updateDownloads();
+    //main.updateDownloads();
     // show the big header image	
     main.initImgs();
   },
