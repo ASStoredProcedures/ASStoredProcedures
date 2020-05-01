@@ -8,7 +8,7 @@ functions:
   - DiscoverXmlMetaDataFull
 ---
 
-**DiscoverXmlMetaData(path _ ,whereClause, restrictions_)**
+**DiscoverXmlMetaData(path _,whereClause, restrictions_)**
 This function executes a ```"DISCOVER_XML_METADATA"``` command, which returns a hierarchical resultset and then "flattens" that resultset and returns it as a datatable which can be displayed by SSMS or used in a Reporting Services report.
 
 Unfortunately standard Xpath style queries did not prove rich enough to return data in it's full context. That is you could return a list of all the dimensions in every cube on a given server, but you could not return a column containing the cube and database to which they belonged. So a hybrid Xpath syntax was developed which allows you to specify a list of fields to return at each level.
@@ -21,7 +21,7 @@ In order to return return a list of all the dimensions in every cube in the curr
 CALL ASSP.discoverXmlMetaData("\Database\Cubes\Cube\Dimensions\Dimension");
 ```
 
-But this returns the list without any context, If you want to report the CubeName and LastProcessed date you would put a vertical bar (|) after the Cube element in the path and then put a comma separated list of fields that you want returned
+But this returns the list without any context, If you want to report the CubeName and LastProcessed date you would put a vertical bar ```(|)``` after the Cube element in the path and then put a comma separated list of fields that you want returned
 
 ```raw
 CALL ASSP.discoverXmlMetaData("\Database\Cubes\Cube|Name,LastProcessed\Dimensions\Dimension");
@@ -97,7 +97,7 @@ An example which retrieves the DMV column upon which each measure is based is:
 CALL ASSP.discoverXmlMetaData("\Database\Cubes\Cube\MeasureGroups\MeasureGroup|Name\Measures\Measure|Name\Source\Source");
 ```
 
-**DiscoverXmlMetaDataFull(path _ , whereClause, restrictions_)**
+**DiscoverXmlMetaDataFull(path _, whereClause, restrictions_)**
 The DiscoverXmlMetadata() function automatically injects a <DatabaseID> restriction into the xmla command using the database specified in the current connection as it was considered to be the most likely use case. If however you want to report on server properties, or do execute a command over every database on the server you can use the DiscoverXmlMetaDataFull() function which has the same syntax as the DiscoverXmlMetaData() function, but it does not insert any implied restrictions.
 
 eg

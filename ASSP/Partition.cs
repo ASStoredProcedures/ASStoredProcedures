@@ -54,6 +54,7 @@ namespace ASStoredProcs
                 Database db = server.Databases.GetByName(AdomdServer.Context.CurrentDatabaseName);
                 Cube cube = db.Cubes.GetByName(CubeName);
                 MeasureGroup mg = cube.MeasureGroups.GetByName(MeasureGroupName);
+                if (mg.Partitions.Count == 0) throw new Exception("There must be one partition before running this stored proc.");
                 Partition template = mg.Partitions[0];
 
                 if (cube.State == AnalysisState.Unprocessed) throw new Exception("The cube [" + cube.Name + "] is unprocessed currently. Run ProcessStructure on it before partitioning it with ASSP.");
