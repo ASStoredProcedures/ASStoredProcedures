@@ -164,6 +164,7 @@ exclude:
   - README.md
   - Vagrantfile
   - run-local-server.cmd
+  - run-local-server.sh
 
 # prose.io config
 prose:
