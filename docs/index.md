@@ -33,5 +33,5 @@ For a list of other resources and links see:
 
 * [Additional Resources](Additional-Resources)
 
-<div class="result">result goes here</div>
+
 
